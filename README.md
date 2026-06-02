@@ -683,12 +683,13 @@ two-go ships an MCP (Model Context Protocol) server so an AI agent like Claude
 can drive it directly: make HTTP calls, generate suites, infer and validate
 schemas. It runs over stdio with no dependencies.
 
-The command to run is always `npx -y two-go-mcp` (nothing to install first).
-Pick your client below and copy the block in.
+It is a local stdio server, so there is no URL, no account, and no API key. The
+command is always `npx -y two-go-mcp` and npx fetches it for you. Pick your
+client below and copy the block in.
 
 ### Claude Code
 
-Run this once in your project:
+Run this once:
 
 ```bash
 claude mcp add two-go -- npx -y two-go-mcp
@@ -716,10 +717,33 @@ Add this to `claude_desktop_config.json` (Settings, Developer, Edit Config):
 }
 ```
 
-### Gemini CLI
+### Cursor
 
-Add this to `~/.gemini/settings.json` (or `.gemini/settings.json` in the
-project):
+Add this to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+### VS Code
+
+Add this to `.vscode/mcp.json` (note the top-level key is `servers`):
+
+```json
+{
+  "servers": {
+    "two-go": { "type": "stdio", "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+### Windsurf
+
+Add this to `~/.codeium/windsurf/mcp_config.json`:
 
 ```json
 {
@@ -731,12 +755,60 @@ project):
 
 ### Codex CLI
 
-Add this to `~/.codex/config.toml`:
+Run this:
+
+```bash
+codex mcp add two-go -- npx -y two-go-mcp
+```
+
+Or add it to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.two-go]
 command = "npx"
 args = ["-y", "two-go-mcp"]
+```
+
+### Gemini CLI
+
+Run this:
+
+```bash
+gemini mcp add two-go npx -y two-go-mcp
+```
+
+Or add it to `~/.gemini/settings.json` (or `.gemini/settings.json` in the project):
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+### GitHub Copilot CLI
+
+Add this to `~/.copilot/mcp-config.json`:
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+### Kiro
+
+Add this to `.kiro/settings/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
 ```
 
 The tools it exposes:
