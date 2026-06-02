@@ -1,6 +1,6 @@
 {
   "name": "two-go",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Zero-dependency fluent service/API testing library: chainable HTTP requests, Jest-style + HTTP assertions, and a lodash-inspired utility belt. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
   "type": "module",
   "main": "src/index.js",
