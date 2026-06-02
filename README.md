@@ -683,7 +683,18 @@ two-go ships an MCP (Model Context Protocol) server so an AI agent like Claude
 can drive it directly: make HTTP calls, generate suites, infer and validate
 schemas. It runs over stdio with no dependencies.
 
-Register it with your MCP client. For Claude the config looks like:
+The command to run is always `npx -y two-go-mcp` (nothing to install first).
+Pick your client below and copy the block in.
+
+### Claude Code
+
+Run this once in your project:
+
+```bash
+claude mcp add two-go -- npx -y two-go-mcp
+```
+
+Or add it to a `.mcp.json` at the project root:
 
 ```json
 {
@@ -691,6 +702,41 @@ Register it with your MCP client. For Claude the config looks like:
     "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
   }
 }
+```
+
+### Claude Desktop
+
+Add this to `claude_desktop_config.json` (Settings, Developer, Edit Config):
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+### Gemini CLI
+
+Add this to `~/.gemini/settings.json` (or `.gemini/settings.json` in the
+project):
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+### Codex CLI
+
+Add this to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.two-go]
+command = "npx"
+args = ["-y", "two-go-mcp"]
 ```
 
 The tools it exposes:
