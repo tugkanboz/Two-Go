@@ -21,6 +21,9 @@ All notable changes to this project are documented here. This project follows
 - **AI bug catching**: `aiReview(response)` returns a list of likely problems
   (bad types, missing fields, leaked secrets, status/body mismatches), and
   `aiFuzz(options)` generates adversarial request payloads to probe an endpoint.
+- **MCP server** (`two-go-mcp` binary, `two-go/mcp`): a zero-dependency Model
+  Context Protocol server over stdio so agents can call `http_request` and the
+  importer and schema helpers as tools.
 
 ## [0.4.0]
 

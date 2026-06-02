@@ -19,10 +19,12 @@
     "./curl": { "types": "./src/curl.d.ts", "default": "./src/curl.js" },
     "./infer-schema": { "types": "./src/infer-schema.d.ts", "default": "./src/infer-schema.js" },
     "./importers": { "types": "./src/importers/index.d.ts", "default": "./src/importers/index.js" },
-    "./ai": { "types": "./src/ai/index.d.ts", "default": "./src/ai/index.js" }
+    "./ai": { "types": "./src/ai/index.d.ts", "default": "./src/ai/index.js" },
+    "./mcp": { "types": "./src/mcp/server.d.ts", "default": "./src/mcp/server.js" }
   },
   "bin": {
-    "two-go": "bin/twogo.js"
+    "two-go": "bin/twogo.js",
+    "two-go-mcp": "bin/two-go-mcp.js"
   },
   "files": [
     "src",

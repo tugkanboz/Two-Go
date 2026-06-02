@@ -669,6 +669,38 @@ for (const body of payloads) {
 Both are advisory. `aiReview` hands you findings, `aiFuzz` hands you inputs, and
 you decide what to do with them.
 
+## MCP server
+
+two-go ships an MCP (Model Context Protocol) server so an AI agent like Claude
+can drive it directly: make HTTP calls, generate suites, infer and validate
+schemas. It runs over stdio with no dependencies.
+
+Register it with your MCP client. For Claude the config looks like:
+
+```json
+{
+  "mcpServers": {
+    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+  }
+}
+```
+
+The tools it exposes:
+
+- `http_request`: send a request and get back status, headers, timing, and body.
+- `gen_openapi` / `gen_postman`: generate a suite from a spec or collection.
+- `infer_schema`: infer a JSON schema from a value.
+- `validate_schema`: validate a value against a schema.
+
+The server logic is also importable if you want to host it yourself:
+
+```js
+import { createServer } from "two-go/mcp";
+
+const server = createServer();
+const response = await server.handle({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+```
+
 ## TypeScript
 
 Types are written by hand and shipped with the package, so you get
