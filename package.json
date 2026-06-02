@@ -1,22 +1,23 @@
 {
   "name": "two-go",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Zero-dependency fluent service/API testing library: chainable HTTP requests, Jest-style + HTTP assertions, and a lodash-inspired utility belt. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
   "type": "module",
   "main": "src/index.js",
+  "types": "./src/index.d.ts",
   "exports": {
-    ".": "./src/index.js",
-    "./utils": "./src/utils/index.js",
-    "./expect": "./src/expect.js",
-    "./schema": "./src/schema.js",
-    "./soft": "./src/soft.js",
-    "./eventually": "./src/eventually.js",
-    "./snapshot": "./src/snapshot.js",
-    "./session": "./src/session.js",
-    "./faker": "./src/faker.js",
-    "./async": "./src/async.js",
-    "./curl": "./src/curl.js",
-    "./infer-schema": "./src/infer-schema.js"
+    ".": { "types": "./src/index.d.ts", "default": "./src/index.js" },
+    "./utils": { "types": "./src/utils/index.d.ts", "default": "./src/utils/index.js" },
+    "./expect": { "types": "./src/expect.d.ts", "default": "./src/expect.js" },
+    "./schema": { "types": "./src/schema.d.ts", "default": "./src/schema.js" },
+    "./soft": { "types": "./src/soft.d.ts", "default": "./src/soft.js" },
+    "./eventually": { "types": "./src/eventually.d.ts", "default": "./src/eventually.js" },
+    "./snapshot": { "types": "./src/snapshot.d.ts", "default": "./src/snapshot.js" },
+    "./session": { "types": "./src/session.d.ts", "default": "./src/session.js" },
+    "./faker": { "types": "./src/faker.d.ts", "default": "./src/faker.js" },
+    "./async": { "types": "./src/async.d.ts", "default": "./src/async.js" },
+    "./curl": { "types": "./src/curl.d.ts", "default": "./src/curl.js" },
+    "./infer-schema": { "types": "./src/infer-schema.d.ts", "default": "./src/infer-schema.js" }
   },
   "bin": {
     "two-go": "bin/twogo.js"
@@ -24,12 +25,15 @@
   "files": [
     "src",
     "bin",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "npm run test:unit && node test/selftest.mjs",
     "test:unit": "node --test \"test/unit/*.test.mjs\"",
-    "test:e2e": "node test/selftest.mjs"
+    "test:e2e": "node test/selftest.mjs",
+    "typecheck": "tsc -p tsconfig.check.json",
+    "prepublishOnly": "npm test"
   },
   "engines": {
     "node": ">=18"

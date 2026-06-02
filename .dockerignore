@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+*.tgz
+__snapshots__
+examples
+README.md
+LICENSE
+CHANGELOG.md

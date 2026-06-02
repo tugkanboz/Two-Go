@@ -1,5 +1,11 @@
 # two-go
 
+[![npm version](https://img.shields.io/npm/v/two-go.svg)](https://www.npmjs.com/package/two-go)
+[![npm downloads](https://img.shields.io/npm/dm/two-go.svg)](https://www.npmjs.com/package/two-go)
+[![CI](https://github.com/tugkanboz/two-go/actions/workflows/ci.yml/badge.svg)](https://github.com/tugkanboz/two-go/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/two-go.svg)](./LICENSE)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
+
 Zero-dependency, fluent service / API testing for Node.js. Write expressive
 HTTP tests with a chainable builder and inline assertions that **throw on
 failure**, so the same tests run standalone (via the built-in runner) or inside
@@ -349,12 +355,36 @@ suite("smoke", ({ test }) => {
 const { passed, failed } = await run();
 ```
 
+## TypeScript
+
+two-go ships hand-written `.d.ts` declarations for the entire public API, so
+editors get full autocomplete and type checking with **no `@types` package and
+no runtime dependency**. It works from both `two-go` and every subpath:
+
+```ts
+import go, { expect, faker } from "two-go";
+import { chunk } from "two-go/utils";
+
+const res = await go("https://api.example.com").get("/users").expectOk();
+res.expectValue("data[0].id").toBeGreaterThan(0); // typed end to end
+```
+
+## Docker
+
+Run the suite in a reproducible container:
+
+```bash
+docker build -t two-go .
+docker run --rm two-go
+```
+
 ## Development
 
 ```bash
 npm test          # unit tests (node:test) + end-to-end self test
 npm run test:unit # unit tests only
 npm run test:e2e  # self test only
+npm run typecheck # type-check the .d.ts against a usage smoke test (tsc)
 ```
 
 ## Publishing
