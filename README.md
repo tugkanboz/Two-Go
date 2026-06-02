@@ -644,6 +644,31 @@ try {
 }
 ```
 
+You can also use the model to hunt for bugs. `aiReview` looks at a response and
+returns a list of likely problems, and `aiFuzz` generates adversarial payloads
+you send with the normal client.
+
+```js
+import { aiReview, aiFuzz } from "two-go/ai";
+
+const res = await api.get("/me");
+const findings = await aiReview(res, { provider: "openai" });
+// findings: [{ severity, field, message }], e.g. a leaked token or a wrong type
+
+const payloads = await aiFuzz({
+  endpoint: "/users",
+  method: "POST",
+  schema: { type: "object", properties: { name: { type: "string" } } },
+});
+for (const body of payloads) {
+  const r = await api.post("/users").json(body);
+  if (r.status >= 500) console.log("possible bug on payload", body, "->", r.status);
+}
+```
+
+Both are advisory. `aiReview` hands you findings, `aiFuzz` hands you inputs, and
+you decide what to do with them.
+
 ## TypeScript
 
 Types are written by hand and shipped with the package, so you get

@@ -18,6 +18,9 @@ All notable changes to this project are documented here. This project follows
 - **AI failure explanation** (`explainFailure`): send a failed assertion plus
   the request and response context to an LLM and get a likely cause and a
   suggested fix. Advisory only, it never changes pass or fail.
+- **AI bug catching**: `aiReview(response)` returns a list of likely problems
+  (bad types, missing fields, leaked secrets, status/body mismatches), and
+  `aiFuzz(options)` generates adversarial request payloads to probe an endpoint.
 
 ## [0.4.0]
 

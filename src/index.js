@@ -37,6 +37,7 @@ import { fromOpenapi } from "./importers/openapi.js";
 import { createProvider } from "./ai/provider.js";
 import { aiGenerateTests } from "./ai/generate.js";
 import { explainFailure } from "./ai/explain.js";
+import { aiReview, aiFuzz } from "./ai/review.js";
 
 // Namespace of all lodash-inspired utilities, available as both `_` and `utils`.
 import * as _ from "./utils/index.js";
@@ -93,6 +94,8 @@ export {
   createProvider,
   aiGenerateTests,
   explainFailure,
+  aiReview,
+  aiFuzz,
 };
 
 // Also expose the utility belt under the `utils` name.
