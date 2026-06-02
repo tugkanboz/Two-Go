@@ -1,14 +1,45 @@
 {
-  "name": "2go-test",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "twogo",
+  "version": "0.1.0",
+  "description": "Zero-dependency fluent service/API testing library with inline assertions. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
   },
-  "author": "tugkanboz",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.3.2"
-  }
+  "bin": {
+    "twogo": "bin/twogo.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/selftest.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "api",
+    "testing",
+    "assertions",
+    "http",
+    "rest",
+    "service-test",
+    "integration",
+    "e2e",
+    "fluent"
+  ],
+  "author": "Tugkan Boz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tugkanboz/TwoGo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tugkanboz/TwoGo/issues"
+  },
+  "homepage": "https://github.com/tugkanboz/TwoGo#readme"
 }
