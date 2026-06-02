@@ -683,16 +683,22 @@ two-go ships an MCP (Model Context Protocol) server so an AI agent like Claude
 can drive it directly: make HTTP calls, generate suites, infer and validate
 schemas. It runs over stdio with no dependencies.
 
-It is a local stdio server, so there is no URL, no account, and no API key. The
-command is always `npx -y two-go-mcp` and npx fetches it for you. Pick your
-client below and copy the block in.
+It is a local stdio server, so there is no URL, no account, and no API key.
+Install it once so the `two-go-mcp` command is on your PATH:
+
+```bash
+npm install -g two-go
+```
+
+Then pick your client below and copy the block in. (If you would rather not
+install globally, replace `two-go-mcp` with `npx -y two-go-mcp` everywhere.)
 
 ### Claude Code
 
 Run this once:
 
 ```bash
-claude mcp add two-go -- npx -y two-go-mcp
+claude mcp add two-go two-go-mcp
 ```
 
 Or add it to a `.mcp.json` at the project root:
@@ -700,7 +706,7 @@ Or add it to a `.mcp.json` at the project root:
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
@@ -712,7 +718,7 @@ Add this to `claude_desktop_config.json` (Settings, Developer, Edit Config):
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
@@ -724,7 +730,7 @@ Add this to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
@@ -736,7 +742,7 @@ Add this to `.vscode/mcp.json` (note the top-level key is `servers`):
 ```json
 {
   "servers": {
-    "two-go": { "type": "stdio", "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "type": "stdio", "command": "two-go-mcp" }
   }
 }
 ```
@@ -748,7 +754,7 @@ Add this to `~/.codeium/windsurf/mcp_config.json`:
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
@@ -758,15 +764,14 @@ Add this to `~/.codeium/windsurf/mcp_config.json`:
 Run this:
 
 ```bash
-codex mcp add two-go -- npx -y two-go-mcp
+codex mcp add two-go two-go-mcp
 ```
 
 Or add it to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.two-go]
-command = "npx"
-args = ["-y", "two-go-mcp"]
+command = "two-go-mcp"
 ```
 
 ### Gemini CLI
@@ -774,7 +779,7 @@ args = ["-y", "two-go-mcp"]
 Run this:
 
 ```bash
-gemini mcp add two-go npx -y two-go-mcp
+gemini mcp add two-go two-go-mcp
 ```
 
 Or add it to `~/.gemini/settings.json` (or `.gemini/settings.json` in the project):
@@ -782,7 +787,7 @@ Or add it to `~/.gemini/settings.json` (or `.gemini/settings.json` in the projec
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
@@ -794,7 +799,7 @@ Add this to `~/.copilot/mcp-config.json`:
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
@@ -806,7 +811,7 @@ Add this to `.kiro/settings/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "two-go": { "command": "npx", "args": ["-y", "two-go-mcp"] }
+    "two-go": { "command": "two-go-mcp" }
   }
 }
 ```
