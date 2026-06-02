@@ -12,6 +12,27 @@ import { chain } from "./utils/chain.js";
 // assertions (expectClientError, expectJsonSchema, expectValue, ...).
 import "./http-assertions.js";
 
+// Differentiating features (API-testing specific, beyond a utility belt).
+import { soft, softly } from "./soft.js";
+import { eventually, pollUntil, retryUntil } from "./eventually.js";
+import { toMatchSnapshot, matchSnapshot, readSnapshot } from "./snapshot.js";
+import { session } from "./session.js";
+import { faker } from "./faker.js";
+import {
+  parallel,
+  parallelLimit,
+  series,
+  waterfall,
+  mapAsync,
+  mapLimit,
+  withTimeout,
+  allSettledMap,
+} from "./async.js";
+// curl.js also augments RequestBuilder.prototype.toCurl on import.
+import { toCurl, enableLogging } from "./curl.js";
+// infer-schema.js also augments GoResponse.prototype.toSchema on import.
+import { inferSchema } from "./infer-schema.js";
+
 // Namespace of all lodash-inspired utilities, available as both `_` and `utils`.
 import * as _ from "./utils/index.js";
 
@@ -40,6 +61,28 @@ export {
   isValid,
   chain,
   _,
+  // differentiators
+  soft,
+  softly,
+  eventually,
+  pollUntil,
+  retryUntil,
+  toMatchSnapshot,
+  matchSnapshot,
+  readSnapshot,
+  session,
+  faker,
+  parallel,
+  parallelLimit,
+  series,
+  waterfall,
+  mapAsync,
+  mapLimit,
+  withTimeout,
+  allSettledMap,
+  toCurl,
+  enableLogging,
+  inferSchema,
 };
 
 // Also expose the utility belt under the `utils` name.

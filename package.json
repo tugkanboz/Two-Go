@@ -1,6 +1,6 @@
 {
   "name": "two-go",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Zero-dependency fluent service/API testing library: chainable HTTP requests, Jest-style + HTTP assertions, and a lodash-inspired utility belt. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
   "type": "module",
   "main": "src/index.js",
@@ -8,7 +8,15 @@
     ".": "./src/index.js",
     "./utils": "./src/utils/index.js",
     "./expect": "./src/expect.js",
-    "./schema": "./src/schema.js"
+    "./schema": "./src/schema.js",
+    "./soft": "./src/soft.js",
+    "./eventually": "./src/eventually.js",
+    "./snapshot": "./src/snapshot.js",
+    "./session": "./src/session.js",
+    "./faker": "./src/faker.js",
+    "./async": "./src/async.js",
+    "./curl": "./src/curl.js",
+    "./infer-schema": "./src/infer-schema.js"
   },
   "bin": {
     "two-go": "bin/twogo.js"
