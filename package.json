@@ -1,5 +1,5 @@
 {
-  "name": "twogo",
+  "name": "two-go",
   "version": "0.1.0",
   "description": "Zero-dependency fluent service/API testing library with inline assertions. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
   "type": "module",
@@ -8,7 +8,7 @@
     ".": "./src/index.js"
   },
   "bin": {
-    "twogo": "bin/twogo.js"
+    "two-go": "bin/twogo.js"
   },
   "files": [
     "src",

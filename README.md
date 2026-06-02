@@ -1,4 +1,4 @@
-# twogo
+# two-go
 
 Zero-dependency, fluent service / API testing for Node.js. Write expressive
 HTTP tests with a chainable builder and inline assertions that **throw on
@@ -9,18 +9,18 @@ failure**, so the same tests run standalone (via the built-in runner) or inside
 - ESM, Node >= 18.
 - Fluent request building: headers, query, bearer auth, JSON/form/text bodies, timeouts.
 - Inline assertions: status, headers, JSON paths, body, response time, custom checks.
-- A tiny built-in runner plus a `twogo` CLI for standalone suites.
+- A tiny built-in runner plus a `two-go` CLI for standalone suites.
 
 ## Installation
 
 ```bash
-npm install twogo --save-dev
+npm install two-go --save-dev
 ```
 
 ## Quick start
 
 ```js
-import { go } from "twogo";
+import { go } from "two-go";
 
 const api = go("https://api.example.com");
 
@@ -118,7 +118,7 @@ Because assertions throw, no adapter is needed:
 
 ```js
 import { test } from "node:test";
-import { go } from "twogo";
+import { go } from "two-go";
 
 const api = go("https://api.example.com");
 
@@ -139,7 +139,7 @@ them.
 
 ```js
 // test/users.twogo.mjs
-import { go, suite } from "twogo";
+import { go, suite } from "two-go";
 
 const api = go("https://api.example.com");
 
@@ -151,8 +151,8 @@ suite("users API", ({ test, before, after }) => {
 ```
 
 ```bash
-npx twogo            # discovers *.twogo.mjs under ./test
-npx twogo path/to/dir
+npx two-go            # discovers *.twogo.mjs under ./test
+npx two-go path/to/dir
 ```
 
 The CLI prints green `✓` for passes and red `✗` with the error for failures,
@@ -161,7 +161,7 @@ ends with `N passed, M failed`, and exits non-zero when anything fails.
 ### Programmatic runner
 
 ```js
-import { suite, run } from "twogo";
+import { suite, run } from "two-go";
 
 suite("smoke", ({ test }) => {
   test("health", async () => {

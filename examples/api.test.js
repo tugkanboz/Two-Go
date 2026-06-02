@@ -7,7 +7,7 @@
 // your own service.
 
 import { test } from "node:test";
-import { go } from "twogo";
+import { go } from "two-go";
 
 const api = go("https://api.example.com");
 

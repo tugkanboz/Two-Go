@@ -18,7 +18,7 @@ const target = process.argv[2] || "test";
 const root = resolve(process.cwd(), target);
 
 if (!existsSync(root)) {
-  console.error(`twogo: target "${target}" does not exist`);
+  console.error(`two-go: target "${target}" does not exist`);
   process.exit(1);
 }
 
@@ -46,12 +46,12 @@ if (statSync(root).isDirectory()) {
 }
 
 if (files.length === 0) {
-  console.error(`twogo: no *.twogo.mjs test files found under "${target}"`);
+  console.error(`two-go: no *.twogo.mjs test files found under "${target}"`);
   process.exit(1);
 }
 
 files.sort();
-console.log(`twogo: found ${files.length} test file(s)`);
+console.log(`two-go: found ${files.length} test file(s)`);
 
 // Importing each file runs its top-level suite() calls.
 for (const file of files) {
