@@ -35,7 +35,11 @@
     "service-test",
     "integration",
     "e2e",
-    "fluent"
+    "fluent",
+    "lodash",
+    "utilities",
+    "json-schema",
+    "expect"
   ],
   "author": "Tugkan Boz",
   "license": "MIT",
