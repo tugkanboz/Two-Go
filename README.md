@@ -78,6 +78,7 @@ you're used to.
 - [Debugging with curl and logging](#debugging-with-curl-and-logging)
 - [Running tests](#running-tests)
 - [Importing from OpenAPI or Postman](#importing-from-openapi-or-postman)
+- [Generating tests with AI](#generating-tests-with-ai)
 - [TypeScript](#typescript)
 - [Docker](#docker)
 - [Recipes](#recipes)
@@ -178,6 +179,7 @@ subpath ships its own types.
 | `two-go/curl` | curl export and logging |
 | `two-go/infer-schema` | schema inference |
 | `two-go/importers` | OpenAPI and Postman importers |
+| `two-go/ai` | optional AI layer (provider plus test generation) |
 
 ## Building a request
 
@@ -595,6 +597,38 @@ status, fills path params with a sample value, and takes the base URL from
 flattened) and maps the method, path, headers, and JSON or urlencoded body. The
 generated checks start at `.expectOk()` or `.expectStatus(...)` so you can
 tighten them.
+
+## Generating tests with AI
+
+This part is optional. Point two-go at an LLM and it can draft a suite from a
+live endpoint or a sample response. The core stays dependency free: the AI layer
+talks to the provider over fetch, you bring your own key, and you can use OpenAI,
+Anthropic, or any compatible endpoint including a local model.
+
+```bash
+export OPENAI_API_KEY=sk-...
+two-go ai gen https://api.example.com/users -o test/users.twogo.mjs
+# or from a saved response, with a different provider
+two-go ai gen ./sample.json --provider anthropic -o test/users.twogo.mjs
+```
+
+From code:
+
+```js
+import { aiGenerateTests, createProvider } from "two-go/ai";
+
+const code = await aiGenerateTests({
+  endpoint: "/users",
+  baseUrl: "https://api.example.com",
+  sample: { data: [{ id: 1, name: "Ada" }] },
+  provider: "openai", // or "anthropic", or pass a custom { baseURL } for a local model
+});
+```
+
+The output is a normal `*.twogo.mjs` file, so it goes into git and runs in CI
+like any other test. Treat it as a first draft and tighten the checks. The
+default models are `gpt-5.3` for OpenAI and `claude-opus-4-8` for Anthropic, and
+you can override either with `{ model }`.
 
 ## TypeScript
 

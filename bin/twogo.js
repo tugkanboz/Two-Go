@@ -15,6 +15,13 @@ import { pathToFileURL } from "node:url";
 import { run } from "../src/runner.js";
 import { fromPostman } from "../src/importers/postman.js";
 import { fromOpenapi } from "../src/importers/openapi.js";
+import { aiGenerateTests } from "../src/ai/generate.js";
+
+// Read the value following a flag in argv, or undefined.
+function flag(name) {
+  const i = process.argv.indexOf(name);
+  return i !== -1 ? process.argv[i + 1] : undefined;
+}
 
 // `two-go gen <postman|openapi> <file> [-o <out>]` generates a test suite from
 // an API definition and writes it to <out> (or prints it to stdout).
@@ -46,6 +53,65 @@ if (process.argv[2] === "gen") {
   else if (type === "openapi") code = fromOpenapi(spec);
   else {
     console.error(`two-go: unknown gen type "${type}" (expected "postman" or "openapi")`);
+    process.exit(1);
+  }
+
+  if (out) {
+    writeFileSync(out, code, "utf8");
+    console.log(`two-go: wrote ${out}`);
+  } else {
+    process.stdout.write(code);
+  }
+  process.exit(0);
+}
+
+// `two-go ai gen <url|file.json> [-o out] [--provider p] [--model m]` asks an
+// LLM to generate a suite from a live endpoint or a sample response.
+if (process.argv[2] === "ai" && process.argv[3] === "gen") {
+  const input = process.argv[4];
+  const out = flag("-o");
+  const opts = { provider: flag("--provider"), model: flag("--model") };
+
+  if (!input) {
+    console.error(
+      "two-go: usage: two-go ai gen <url|file.json> [-o out] [--provider openai|anthropic] [--model m]"
+    );
+    process.exit(1);
+  }
+
+  if (/^https?:\/\//i.test(input)) {
+    opts.endpoint = input;
+    opts.baseUrl = new URL(input).origin;
+    try {
+      const r = await fetch(input);
+      const body = await r.text();
+      try {
+        opts.sample = JSON.parse(body);
+      } catch {
+        opts.sample = body;
+      }
+    } catch (err) {
+      console.error(`two-go: could not fetch ${input}: ${err.message}`);
+      process.exit(1);
+    }
+  } else {
+    if (!existsSync(input)) {
+      console.error(`two-go: input "${input}" does not exist`);
+      process.exit(1);
+    }
+    const raw = readFileSync(input, "utf8");
+    try {
+      opts.sample = JSON.parse(raw);
+    } catch {
+      opts.sample = raw;
+    }
+  }
+
+  let code;
+  try {
+    code = await aiGenerateTests(opts);
+  } catch (err) {
+    console.error(`two-go: ${err.message}`);
     process.exit(1);
   }
 
