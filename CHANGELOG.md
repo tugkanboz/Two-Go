@@ -3,7 +3,10 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0] - 2026-06-02
+
+First stable release. The HTTP client, assertions, utilities, and the AI and MCP
+layers are all considered stable from here.
 
 ### Added
 

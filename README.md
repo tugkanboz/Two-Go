@@ -38,8 +38,16 @@ The HTTP client and inline checks are the core. Around them there's a value
 assertion API (`expect`), soft assertions, polling for slow endpoints, JSON
 snapshots, session/auth chaining, a fake-data generator, async helpers, a
 general utility belt, JSON schema validation, and importers that turn an
-OpenAPI or Postman file into a test suite. All of it ships with TypeScript
-types and zero runtime dependencies.
+OpenAPI or Postman file into a test suite.
+
+There's also an optional AI layer (`two-go/ai`): it can draft a test suite from
+a live endpoint, explain why a test failed, review a response for likely bugs,
+and generate adversarial payloads to fuzz an endpoint. It talks to providers
+over fetch with your own key, so the core stays dependency free. And there's an
+MCP server (`two-go-mcp`) so an agent like Claude can drive two-go as a set of
+tools.
+
+All of it ships with TypeScript types and zero runtime dependencies.
 
 ## Who actually uses this
 
