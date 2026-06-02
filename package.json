@@ -1,11 +1,14 @@
 {
   "name": "two-go",
-  "version": "0.1.0",
-  "description": "Zero-dependency fluent service/API testing library with inline assertions. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
+  "version": "0.2.0",
+  "description": "Zero-dependency fluent service/API testing library: chainable HTTP requests, Jest-style + HTTP assertions, and a lodash-inspired utility belt. Works standalone or inside node:test, Jest, Vitest, and Mocha.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./utils": "./src/utils/index.js",
+    "./expect": "./src/expect.js",
+    "./schema": "./src/schema.js"
   },
   "bin": {
     "two-go": "bin/twogo.js"
@@ -16,7 +19,9 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node test/selftest.mjs"
+    "test": "npm run test:unit && node test/selftest.mjs",
+    "test:unit": "node --test \"test/unit/*.test.mjs\"",
+    "test:e2e": "node test/selftest.mjs"
   },
   "engines": {
     "node": ">=18"
