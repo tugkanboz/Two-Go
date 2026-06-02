@@ -64,6 +64,7 @@ and its assertions feel like the unit-test assertions you already know.
 - [Schema validation & inference](#schema-validation--inference)
 - [Debugging: curl export & logging](#debugging-curl-export--logging)
 - [Running your tests](#running-your-tests)
+- [Generate tests from OpenAPI / Postman](#generate-tests-from-openapi--postman)
 - [TypeScript](#typescript)
 - [Docker](#docker)
 - [Recipes](#recipes)
@@ -627,6 +628,31 @@ const { passed, failed } = await run();
 
 ---
 
+## Generate tests from OpenAPI / Postman
+
+Scaffold runnable `*.twogo.mjs` suites from an existing API definition (JSON
+input for now):
+
+```bash
+two-go gen openapi ./openapi.json -o test/api.twogo.mjs
+two-go gen postman ./collection.json -o test/api.twogo.mjs
+# omit -o to print to stdout
+```
+
+Programmatic use:
+
+```js
+import { fromOpenapi, fromPostman } from "two-go/importers";
+
+const code = fromOpenapi(JSON.parse(specJson));   // returns the suite source
+```
+
+- **OpenAPI 3**: one test per operation, asserting the documented 2xx status;
+  path params get a sample value; `servers[0].url` becomes the base URL.
+- **Postman v2.1**: one test per request (folders flattened), mapping method,
+  path, headers, and JSON/urlencoded bodies. Generated assertions start at
+  `.expectOk()` / `.expectStatus(...)` for you to tighten.
+
 ## TypeScript
 
 two-go ships hand-written `.d.ts` declarations for the entire public API, so you
@@ -793,9 +819,7 @@ anywhere Node 18+ runs.
 
 Planned, in rough priority order (suggestions welcome via issues):
 
-1. **OpenAPI / Postman importers** — generate `*.twogo.mjs` tests from an OpenAPI
-   spec or a Postman collection.
-2. **Reporters** — JUnit XML and JSON output from the built-in runner for CI.
+1. **Reporters** — JUnit XML and JSON output from the built-in runner for CI.
 3. **GraphQL helper** — `.graphql(query, variables)` on the builder.
 4. **Cookie jar / persistent sessions** — automatic cookie carry-over.
 5. **Retry/backoff at the request level** — `.retry({ attempts, backoff })`.

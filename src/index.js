@@ -32,6 +32,8 @@ import {
 import { toCurl, enableLogging } from "./curl.js";
 // infer-schema.js also augments GoResponse.prototype.toSchema on import.
 import { inferSchema } from "./infer-schema.js";
+import { fromPostman } from "./importers/postman.js";
+import { fromOpenapi } from "./importers/openapi.js";
 
 // Namespace of all lodash-inspired utilities, available as both `_` and `utils`.
 import * as _ from "./utils/index.js";
@@ -83,6 +85,8 @@ export {
   toCurl,
   enableLogging,
   inferSchema,
+  fromPostman,
+  fromOpenapi,
 };
 
 // Also expose the utility belt under the `utils` name.
