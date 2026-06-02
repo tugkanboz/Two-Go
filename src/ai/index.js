@@ -3,3 +3,4 @@
 export { createProvider } from "./provider.js";
 export { aiGenerateTests } from "./generate.js";
 export { explainFailure } from "./explain.js";
+export { aiReview, aiFuzz } from "./review.js";

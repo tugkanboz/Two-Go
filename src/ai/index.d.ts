@@ -8,3 +8,4 @@ export {
 } from "./provider.js";
 export { aiGenerateTests, type GenerateOptions } from "./generate.js";
 export { explainFailure, type ExplainOptions } from "./explain.js";
+export { aiReview, aiFuzz, type Finding, type ReviewOptions, type FuzzOptions } from "./review.js";
