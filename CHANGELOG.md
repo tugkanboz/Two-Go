@@ -11,6 +11,10 @@ All notable changes to this project are documented here. This project follows
   `*.twogo.mjs` suites from an OpenAPI 3 document or a Postman v2.1 collection
   (JSON). New CLI command `two-go gen <openapi|postman> <file> [-o <out>]` and
   the `two-go/importers` subpath.
+- **AI layer** (`two-go/ai`): an optional, dependency-free LLM client over
+  fetch (`createProvider`, bring your own key, OpenAI/Anthropic/custom baseURL)
+  and `aiGenerateTests` to draft a suite from an endpoint or sample response.
+  New CLI command `two-go ai gen <url|file> [-o out]`.
 
 ## [0.4.0]
 
