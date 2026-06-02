@@ -7,17 +7,15 @@
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
 [![types](https://img.shields.io/badge/types-included-blue.svg)](./src/index.d.ts)
 
-**two-go** is a zero-dependency, fluent toolkit for testing HTTP services and
-APIs in Node.js. You describe a request with a chainable builder, attach inline
-assertions, and `await` it. Assertions **throw on failure**, so the same tests
-run standalone (built-in runner / CLI) or inside `node:test`, Jest, Vitest, and
-Mocha — no adapter required.
+two-go is a small library for testing HTTP APIs from Node. You build a request
+with a chainable API, attach the checks you care about, and `await` it. If a
+check fails it throws, so you don't need a special test runner. It works on its
+own, and it works inside `node:test`, Jest, Vitest, or Mocha without any plugin.
 
-On top of the HTTP core, two-go bundles the things real API test suites need:
-a value-assertion API, soft assertions, polling, JSON snapshots, session
-chaining, fake data, async control-flow, a general-purpose utility belt, and
-JSON-schema validation/inference. All with **zero runtime dependencies** and
-**TypeScript types included**.
+I got tired of either clicking through a GUI or wiring up an HTTP client plus an
+assertion library plus a dozen helpers for every project. two-go puts the parts
+I keep reaching for in one place, and it has no dependencies, so installing it
+doesn't drag in half of npm.
 
 ```js
 import { go } from "two-go";
@@ -30,246 +28,234 @@ await go("https://api.example.com")
   .expectJson("data[0].id", 1);
 ```
 
----
+That one chain sends the request and runs all three checks. If any of them
+fails you get an error like `GET https://api.example.com/users -> expected
+status 200 but got 500`.
 
-## Who is it for?
+## What's in the box
 
-| Audience | What they get |
-| -------- | ------------- |
-| **QA / automation engineers** | API, integration, e2e and regression tests; polling for async APIs; soft assertions; snapshots; session/auth chaining; fake data; a CLI to run suites |
-| **Backend / full-stack developers** | Code-first integration tests in `node:test`/Jest/Vitest/Mocha; CI-friendly; a `expect()` for any value; a utility belt and schema tools reusable in app code |
+The HTTP client and inline checks are the core. Around them there's a value
+assertion API (`expect`), soft assertions, polling for slow endpoints, JSON
+snapshots, session/auth chaining, a fake-data generator, async helpers, a
+general utility belt, JSON schema validation, and importers that turn an
+OpenAPI or Postman file into a test suite. All of it ships with TypeScript
+types and zero runtime dependencies.
 
-two-go is an **API / service testing** library (integration & e2e). It is *not*
-a unit-test runner itself — instead it plugs into the runner you already use,
-and its assertions feel like the unit-test assertions you already know.
+## Who actually uses this
 
----
+Two groups, and the package works for both:
+
+If you do test automation or QA, you get HTTP checks, polling for eventual
+consistency, soft assertions so one run reports every problem, snapshots, login
+chaining, fake data, and a CLI to run whole folders of tests.
+
+If you're a backend or full-stack dev, you write integration tests right next
+to your unit tests in whatever runner you already use, and you can reuse the
+`expect`, the utility belt, and the schema tools in app code too.
+
+One thing to be clear about: two-go is for API and service testing
+(integration and e2e). It is not a unit test runner. It plugs into the runner
+you already have. The checks just happen to read like the unit test assertions
+you're used to.
 
 ## Table of contents
 
-- [Installation](#installation)
-- [Quick start](#quick-start)
-- [Core concepts](#core-concepts)
-- [Subpath exports](#subpath-exports)
-- [Request building](#request-building)
-- [HTTP assertions](#http-assertions)
-- [Value assertions: expect()](#value-assertions-expect)
+- [Install](#install)
+- [Five minute tour](#five-minute-tour)
+- [The three pieces](#the-three-pieces)
+- [Subpath imports](#subpath-imports)
+- [Building a request](#building-a-request)
+- [HTTP checks](#http-checks)
+- [expect() for any value](#expect-for-any-value)
 - [Soft assertions](#soft-assertions)
-- [Polling: eventually / pollUntil](#polling-eventually--polluntil)
-- [Snapshot testing](#snapshot-testing)
-- [Session chaining](#session-chaining)
-- [Fake data: faker](#fake-data-faker)
-- [Async control-flow](#async-control-flow)
+- [Polling slow endpoints](#polling-slow-endpoints)
+- [Snapshots](#snapshots)
+- [Sessions and chaining](#sessions-and-chaining)
+- [Fake data](#fake-data)
+- [Async helpers](#async-helpers)
 - [Utility belt](#utility-belt)
-- [Schema validation & inference](#schema-validation--inference)
-- [Debugging: curl export & logging](#debugging-curl-export--logging)
-- [Running your tests](#running-your-tests)
-- [Generate tests from OpenAPI / Postman](#generate-tests-from-openapi--postman)
+- [Schema validation and inference](#schema-validation-and-inference)
+- [Debugging with curl and logging](#debugging-with-curl-and-logging)
+- [Running tests](#running-tests)
+- [Importing from OpenAPI or Postman](#importing-from-openapi-or-postman)
 - [TypeScript](#typescript)
 - [Docker](#docker)
 - [Recipes](#recipes)
-- [How it compares](#how-it-compares)
-- [API reference summary](#api-reference-summary)
+- [two-go next to other tools](#two-go-next-to-other-tools)
 - [FAQ](#faq)
 - [Roadmap](#roadmap)
-- [Development](#development)
-- [Publishing](#publishing)
+- [Contributing](#contributing)
 - [License](#license)
 
----
-
-## Installation
+## Install
 
 ```bash
 npm install two-go --save-dev
-# or
-pnpm add -D two-go
-# or
-yarn add -D two-go
 ```
 
-Requirements: **Node.js >= 18** (uses the native `fetch`). ESM only
-(`"type": "module"` or `.mjs`). Zero runtime dependencies.
+You need Node 18 or newer, because it uses the built-in `fetch`. It's ESM only,
+so use `import` (or a dynamic `import()` from CommonJS). There are no runtime
+dependencies.
 
----
-
-## Quick start
+## Five minute tour
 
 ```js
 import { go } from "two-go";
 
 const api = go("https://api.example.com");
 
-// Awaiting the builder sends the request and replays the queued assertions.
 const res = await api
   .get("/users")
   .query({ page: 1 })
   .expectStatus(200)
   .expectJson("data[0].id", 1);
 
-// You also have the resolved response to inspect.
+// You still get the response back to poke at.
 console.log(res.status, res.time, res.get("data[0].name"));
 ```
 
-`go()` takes a base URL string, or an options object:
+`go()` takes a base URL, or an options object if you want default headers and a
+timeout for every request:
 
 ```js
 const api = go({
   baseURL: "https://api.example.com",
-  headers: { "x-api-key": "secret" }, // default headers for every request
-  timeout: 10000,                     // default timeout (ms)
+  headers: { "x-api-key": "secret" },
+  timeout: 10000,
 });
 ```
 
----
+## The three pieces
 
-## Core concepts
+There isn't much to learn. There's a client, a request builder, and a response.
 
-three small pieces:
+`GoClient` comes from `go()`. It holds the base URL, default headers, and
+timeout, and it has one method per HTTP verb.
 
-- **`GoClient`** — created by `go()`. Holds the base URL, default headers and
-  timeout. Exposes one method per HTTP verb.
-- **`RequestBuilder`** — returned by `client.get(...)` etc. A **thenable**:
-  chain configuration and assertions, then `await` it (or call `.run()`) to send.
-- **`GoResponse`** — the resolved result. Holds the parsed body and metadata,
-  and carries every assertion method.
+`RequestBuilder` is what `api.get("/x")` returns. You chain configuration and
+checks onto it, then `await` it. It's a thenable, so awaiting it is what
+actually sends the request. You can also call `.run()` if you prefer.
+
+`GoResponse` is the resolved result. It carries the parsed body and the
+metadata, plus every check method.
 
 ```js
-const builder = api.get("/users");   // RequestBuilder (not sent yet)
-const res = await builder;            // GoResponse (sent, assertions replayed)
+const builder = api.get("/users"); // nothing sent yet
+const res = await builder;          // now it's sent, checks ran
 ```
 
-A `GoResponse` has:
+A `GoResponse` gives you:
 
-| Field | Type | Description |
-| ----- | ---- | ----------- |
+| Field | Type | What it is |
+| ----- | ---- | ---------- |
 | `status` | number | HTTP status code |
 | `statusText` | string | HTTP status text |
-| `headers` | object | response headers, **lowercase keys** |
-| `body` | any | parsed JSON when the content-type is JSON, otherwise the raw text |
-| `text` | string | the raw response body |
-| `time` | number | round-trip time in ms |
-| `url` | string | the final request URL |
+| `headers` | object | response headers, keys lowercased |
+| `body` | any | parsed JSON when the content type is JSON, otherwise the raw text |
+| `text` | string | the raw body as text |
+| `time` | number | round trip time in ms |
+| `url` | string | the final URL that was called |
 | `method` | string | the HTTP method |
-| `get(path)` | method | read a value from `body` via a dot/bracket path |
+| `get(path)` | method | pull a value out of `body` with a dot/bracket path |
 
----
+## Subpath imports
 
-## Subpath exports
+Pull everything from `two-go`, or grab just one area from a subpath. Every
+subpath ships its own types.
 
-Import everything from `two-go`, or pull a focused area from a subpath. All
-subpaths ship TypeScript types.
-
-| Import | Contents |
-| ------ | -------- |
-| `two-go` | everything (default `go`, assertions, utilities, all features) |
-| `two-go/utils` | the utility belt (flat named exports) |
+| Import | What you get |
+| ------ | ------------ |
+| `two-go` | everything (the default `go`, all checks, utilities, features) |
+| `two-go/utils` | the utility belt as flat named exports |
 | `two-go/expect` | the standalone `expect()` |
-| `two-go/schema` | `validate` / `isValid` JSON-schema validator |
+| `two-go/schema` | `validate` and `isValid` |
 | `two-go/soft` | soft assertions |
-| `two-go/eventually` | `eventually` / `pollUntil` |
+| `two-go/eventually` | `eventually` and `pollUntil` |
 | `two-go/snapshot` | snapshot testing |
 | `two-go/session` | stateful request chaining |
-| `two-go/faker` | fake data generator |
-| `two-go/async` | async control-flow helpers |
-| `two-go/curl` | curl export + logging |
+| `two-go/faker` | the fake data generator |
+| `two-go/async` | async control flow helpers |
+| `two-go/curl` | curl export and logging |
 | `two-go/infer-schema` | schema inference |
+| `two-go/importers` | OpenAPI and Postman importers |
 
----
-
-## Request building
+## Building a request
 
 Every verb (`get`, `put`, `post`, `patch`, `delete`, `head`, `options`) returns
-a chainable, thenable `RequestBuilder`.
+a builder you can chain.
 
 ```js
 await api.post("/users")
-  .header("x-request-id", "abc")          // one header
-  .headers({ "x-trace": "1", lang: "en" }) // many headers
-  .query({ page: 1, tags: ["a", "b"] })    // query params (arrays repeat the key)
+  .header("x-request-id", "abc")           // one header
+  .headers({ "x-trace": "1", lang: "en" }) // several at once
+  .query({ page: 1, tags: ["a", "b"] })    // array values repeat the key
   .bearer("TOKEN")                         // authorization: Bearer TOKEN
-  .json({ name: "Ada", role: "admin" })    // JSON body + content-type
-  .timeout(5000)                           // per-request timeout (ms)
+  .json({ name: "Ada", role: "admin" })    // JSON body and content-type
+  .timeout(5000)                           // overrides the client default
   .expectStatus(201);
 ```
 
-### Configuration methods
-
-| Method | Effect |
-| ------ | ------ |
-| `.header(name, value)` | set a single header |
-| `.headers(obj)` | merge multiple headers |
-| `.query(obj)` | append query params (array values repeat the key) |
+| Method | What it does |
+| ------ | ------------ |
+| `.header(name, value)` | set one header |
+| `.headers(obj)` | merge several headers |
+| `.query(obj)` | add query params (array values repeat the key) |
 | `.bearer(token)` | set `authorization: Bearer <token>` |
-| `.json(obj)` | `JSON.stringify` body + `content-type: application/json` |
-| `.form(obj)` | URL-encoded body + `content-type: application/x-www-form-urlencoded` |
-| `.text(str)` | raw text body (`content-type: text/plain` unless already set) |
-| `.timeout(ms)` | per-request timeout, overrides the client default |
-| `.run()` | send explicitly and return a `Promise<GoResponse>` |
+| `.json(obj)` | JSON body plus `content-type: application/json` |
+| `.form(obj)` | URL encoded body plus the matching content type |
+| `.text(str)` | raw text body (`text/plain` unless you already set a type) |
+| `.timeout(ms)` | per request timeout, overrides the client default |
+| `.run()` | send now and return a `Promise<GoResponse>` |
 
-Notes:
+A few things worth knowing. If you pass an absolute `http(s)://` URL to a verb,
+the base URL is ignored. Timeouts use `AbortController` and reject with a clear
+message when they fire. Header keys are lowercased so merging behaves the same
+every time.
 
-- **Absolute URLs** (`http(s)://...`) passed to a verb bypass the base URL.
-- The request **times out** via `AbortController`; a timeout rejects with a
-  descriptive error.
-- Header keys are normalized to lowercase for predictable merging.
+## HTTP checks
 
----
+You can queue checks on the builder, where they run in order once you await it,
+or call them on a resolved response. Either way they return the response so you
+can keep chaining, and they throw an `AssertionError` on failure. Messages look
+like `<METHOD> <URL> -> <what went wrong>`.
 
-## HTTP assertions
+Status:
 
-Assertions can be **queued on the builder** (replayed in order when awaited) or
-**called on a resolved `GoResponse`**. Each returns the response for chaining
-and throws an `AssertionError` on failure. Failure messages are formatted as:
-
-```
-<METHOD> <URL> -> <description>
-```
-
-### Status
-
-| Assertion | Meaning |
-| --------- | ------- |
+| Check | Passes when |
+| ----- | ----------- |
 | `expectStatus(code)` | status equals `code` |
 | `expectStatusIn(...codes)` | status is one of `codes` |
-| `expectOk()` | 2xx |
-| `expectClientError()` | 4xx |
-| `expectServerError()` | 5xx |
-| `expectRedirect()` | 3xx |
-| `expectCreated()` | 201 |
-| `expectAccepted()` | 202 |
-| `expectNoContent()` | 204 |
-| `expectBadRequest()` | 400 |
-| `expectUnauthorized()` | 401 |
-| `expectForbidden()` | 403 |
-| `expectNotFound()` | 404 |
+| `expectOk()` | status is 2xx |
+| `expectClientError()` / `expectServerError()` / `expectRedirect()` | 4xx / 5xx / 3xx |
+| `expectCreated()` / `expectAccepted()` / `expectNoContent()` | 201 / 202 / 204 |
+| `expectBadRequest()` / `expectUnauthorized()` / `expectForbidden()` / `expectNotFound()` | 400 / 401 / 403 / 404 |
 
-### Headers & cookies
+Headers and cookies:
 
-| Assertion | Meaning |
-| --------- | ------- |
-| `expectHeader(name, matcher?)` | header present / value matches |
-| `expectHeaderContains(name, substr)` | header value contains substring |
+| Check | Passes when |
+| ----- | ----------- |
+| `expectHeader(name, matcher?)` | header is present, and matches if you pass a matcher |
+| `expectHeaderContains(name, substr)` | header value contains the substring |
 | `expectHeaderAbsent(name)` | header is not present |
-| `expectContentType(type)` | content-type contains `type` |
-| `expectCookie(name, matcher?)` | a `set-cookie` is present / matches |
+| `expectContentType(type)` | content type contains `type` |
+| `expectCookie(name, matcher?)` | a `set-cookie` is present, and matches if given |
 
-### Body & JSON
+Body and JSON:
 
-| Assertion | Meaning |
-| --------- | ------- |
-| `expectJson(path, expected?)` | value at `path` exists / matches |
-| `expectJsonLength(path, n)` | array/string at `path` has length `n` |
-| `expectArrayLength(path, n)` | alias for array length |
-| `expectJsonContains(path, value)` | array contains item (objects match by **subset**) |
-| `expectJsonSchema(schema)` | `body` validates against a JSON schema |
-| `expectSorted(path, options?)` | array at `path` is sorted (`{ key?, order? }`) |
-| `expectBody(matcher)` | whole body matches (deep for objects) |
-| `expectBodyContains(substr)` | raw text body contains `substr` |
-| `expectEmpty()` / `expectNotEmpty()` | body is empty / not |
-| `expectTimeBelow(ms)` | round-trip time below `ms` |
+| Check | Passes when |
+| ----- | ----------- |
+| `expectJson(path, expected?)` | value at `path` exists, and matches if you pass `expected` |
+| `expectJsonLength(path, n)` | array or string at `path` has length `n` |
+| `expectArrayLength(path, n)` | same thing, named for arrays |
+| `expectJsonContains(path, value)` | array contains a matching item (objects match by subset) |
+| `expectJsonSchema(schema)` | the body validates against a JSON schema |
+| `expectSorted(path, options?)` | the array at `path` is sorted (`{ key?, order? }`) |
+| `expectBody(matcher)` | the whole body matches (deep compare for objects) |
+| `expectBodyContains(substr)` | the raw text body contains `substr` |
+| `expectEmpty()` / `expectNotEmpty()` | the body is empty / not empty |
+| `expectTimeBelow(ms)` | the round trip was under `ms` |
 | `check(label, fn)` | fails if `fn(response)` returns `false` or throws |
-| `expectValue(path)` | returns an `expect()` bound to the value at `path` |
+| `expectValue(path)` | hands you an `expect()` bound to the value at `path` |
 
 ```js
 const res = await api.get("/users").expectOk();
@@ -280,29 +266,22 @@ res.expectJsonContains("users", { id: 2 });            // subset match
 res.expectSorted("data", { key: "id", order: "asc" });
 ```
 
-### Matchers
-
-`expectHeader`, `expectJson`, and `expectBody` accept a flexible matcher:
-
-- **RegExp** — tested against `String(value)`
-- **function** — predicate; a truthy return means match
-- **object / array** — deep structural equality
-- **primitive** — strict `===`
+About matchers: `expectHeader`, `expectJson`, and `expectBody` take a flexible
+matcher. A RegExp is tested against the stringified value. A function is treated
+as a predicate, so a truthy return passes. An object or array is compared
+deeply. Anything else is compared with `===`.
 
 ```js
 await api.get("/users")
-  .expectJson("data[0].role", (role) => role === "admin")     // predicate
-  .expectJson("meta", { page: 1, total: 2 })                  // deep object
-  .expectHeader("x-trace-id", /^[0-9a-f-]+$/);                 // regex
+  .expectJson("data[0].role", (role) => role === "admin")
+  .expectJson("meta", { page: 1, total: 2 })
+  .expectHeader("x-trace-id", /^[0-9a-f-]+$/);
 ```
 
----
+## expect() for any value
 
-## Value assertions: expect()
-
-`expect(value)` works on **any value**, not just responses. The matcher API is
-the familiar `expect(x).toBe(y)` shape, with `.not` negation and
-`.resolves` / `.rejects` for promises.
+`expect(value)` is not tied to responses, you can use it on anything. It has
+`.not` for negation and `.resolves` / `.rejects` for promises.
 
 ```js
 import { expect } from "two-go";
@@ -318,19 +297,18 @@ await expect(Promise.resolve(5)).resolves.toBe(5);
 await expect(Promise.reject(new Error("x"))).rejects.toMatch(/x/);
 ```
 
-**Matchers:** `toBe`, `toEqual`, `toStrictEqual`, `toBeTruthy`, `toBeFalsy`,
+The matchers: `toBe`, `toEqual`, `toStrictEqual`, `toBeTruthy`, `toBeFalsy`,
 `toBeNull`, `toBeUndefined`, `toBeDefined`, `toBeNaN`, `toBeGreaterThan`,
 `toBeGreaterThanOrEqual`, `toBeLessThan`, `toBeLessThanOrEqual`, `toBeCloseTo`,
 `toContain`, `toContainEqual`, `toMatch`, `toMatchObject`, `toHaveLength`,
 `toHaveProperty`, `toBeInstanceOf`, `toBeType`, `toBeOneOf`, `toThrow`,
-`toSatisfy`, `toBeEmpty` — each also available negated via `.not`.
-
----
+`toSatisfy`, `toBeEmpty`. Each one also works negated through `.not`.
 
 ## Soft assertions
 
-Collect every failure and report them together, instead of stopping at the
-first one. Ideal for verifying many fields of one response in a single run.
+Sometimes you want to see every problem with a response in one run, not just the
+first. That's what soft assertions are for. They collect failures and throw once
+at the end.
 
 ```js
 import { softly } from "two-go";
@@ -339,10 +317,10 @@ softly((expect) => {
   expect(res.status).toBe(200);
   expect(res.get("data")).toHaveLength(2);
   expect(res.get("data[0].role")).toBe("admin");
-}); // throws ONCE at the end, listing every failure (if any)
+});
 ```
 
-Manage the lifecycle yourself with `soft()`:
+If you want to control when it throws, use `soft()` directly:
 
 ```js
 import { soft } from "two-go";
@@ -350,26 +328,24 @@ import { soft } from "two-go";
 const s = soft();
 s.expect(res.status).toBe(200);
 s.expect(res.get("total")).toBeGreaterThan(0);
-console.log(s.failures);  // string[] of collected failures so far
-s.verify();               // throws an aggregated AssertionError if any failed
+console.log(s.failures); // what's failed so far, as strings
+s.verify();              // throws one error listing everything, if anything failed
 ```
 
----
+## Polling slow endpoints
 
-## Polling: eventually / pollUntil
-
-For eventual-consistency or async workflows (a job finishes, a record appears),
-retry until it passes or a timeout elapses.
+When a value shows up eventually (a job finishes, a record gets indexed), retry
+until it's there or you hit a timeout.
 
 ```js
 import { eventually, pollUntil } from "two-go";
 
-// Retry the whole assertion block until it stops throwing.
+// Retry the whole block until it stops throwing.
 await eventually(async () => {
   await api.get("/jobs/123").expectJson("status", "done");
 }, { timeout: 5000, interval: 200 });
 
-// Poll a request until a predicate on the result is true; returns the result.
+// Or poll a request until a predicate on the result is true. Returns the result.
 const done = await pollUntil(
   () => api.get("/jobs/123"),
   (r) => r.get("status") === "done",
@@ -377,14 +353,12 @@ const done = await pollUntil(
 );
 ```
 
-Options: `{ timeout = 5000, interval = 100, message }`. `retryUntil` is an alias
-of `eventually`.
+Options are `{ timeout = 5000, interval = 100, message }`. `retryUntil` is just
+another name for `eventually`.
 
----
+## Snapshots
 
-## Snapshot testing
-
-Record a response/value once, then detect drift on later runs.
+Record a response once, then catch it when it changes later.
 
 ```js
 import { toMatchSnapshot } from "two-go";
@@ -393,45 +367,41 @@ const res = await api.get("/users");
 toMatchSnapshot(res.body, "users-list");
 ```
 
-- First run writes `__snapshots__/users-list.json` and **passes**.
-- Later runs deep-compare and **throw** on any difference.
-- Refresh with `{ update: true }` or the env var `TWO_GO_UPDATE_SNAPSHOTS=1`.
-- Custom directory via `{ dir: "path/to/snapshots" }`.
-- `readSnapshot(name, options?)` returns the stored value; `matchSnapshot` is an alias.
+The first run writes `__snapshots__/users-list.json` and passes. After that it
+compares and throws if anything differs. To accept a new version, pass
+`{ update: true }` or set `TWO_GO_UPDATE_SNAPSHOTS=1`. Use `{ dir: "..." }` for
+a different folder. `readSnapshot(name, options?)` gives you the stored value,
+and `matchSnapshot` is another name for `toMatchSnapshot`.
 
----
+## Sessions and chaining
 
-## Session chaining
-
-Extract a value from one response and reuse it in later requests via `{{var}}`
-interpolation. Great for login → token → authorized call.
+Pull a value out of one response and reuse it in the next one with `{{var}}`
+placeholders. The usual case is login, grab the token, call something that needs
+it.
 
 ```js
 import { session } from "two-go";
 
 const s = session("https://api.example.com");
 
-// Store body.data.token as {{token}} in the session context.
 await s.post("/login")
   .json({ user: "ada", pass: "secret" })
-  .extract("token", "data.token");
+  .extract("token", "data.token"); // saves body.data.token as {{token}}
 
-// {{token}} is interpolated into headers/path/body before sending.
 await s.get("/me")
-  .header("authorization", "Bearer {{token}}")
+  .header("authorization", "Bearer {{token}}") // filled in before sending
   .expectOk()
   .expectJson("user", "ada");
 ```
 
-- `extract("name", "json.path")` or `extract({ token: "data.token", id: "data.id" })`.
-- Manual control: `s.set(name, value)`, `s.get(name)`, `s.vars` (the context object).
-- `{{var}}` placeholders are interpolated in the path, header values, and string body.
+`extract` takes either a name and a path, or a map like
+`extract({ token: "data.token", id: "data.id" })`. You can also set and read the
+context yourself with `s.set(name, value)`, `s.get(name)`, and `s.vars`.
+Placeholders are replaced in the path, header values, and a string body.
 
----
+## Fake data
 
-## Fake data: faker
-
-Zero-dependency fake data for test payloads.
+Test payloads without pulling in a faker dependency.
 
 ```js
 import { faker } from "two-go";
@@ -447,39 +417,35 @@ const payload = {
 };
 ```
 
-Available: `uuid`, `email`, `firstName`, `lastName`, `fullName`, `username`,
+There's `uuid`, `email`, `firstName`, `lastName`, `fullName`, `username`,
 `word`, `words(n)`, `sentence(n)`, `paragraph(n)`, `number({min,max})`,
 `int(min,max)`, `float(min,max,decimals)`, `boolean`, `pick(array)`,
 `pickMany(array,n)`, `date(options)`, `pastDate`, `futureDate`, `hexColor`,
-`ipv4`, `url`, `phone`, `arrayOf(fn,n)`.
+`ipv4`, `url`, `phone`, and `arrayOf(fn,n)`.
 
----
+## Async helpers
 
-## Async control-flow
-
-The area plain utility libraries are weak at.
+The stuff plain utility libraries tend to skip.
 
 ```js
 import {
   parallel, parallelLimit, series, waterfall, mapLimit, withTimeout,
 } from "two-go";
 
-await parallel([() => a(), () => b()]);            // all at once, ordered results
-await parallelLimit(tasks, 4);                     // bounded concurrency
-await series([() => step1(), () => step2()]);      // sequential
-await waterfall([() => seed(), (v) => next(v)]);   // pass each result to the next
+await parallel([() => a(), () => b()]);          // all at once, results in order
+await parallelLimit(tasks, 4);                   // cap concurrency at 4
+await series([() => step1(), () => step2()]);    // one after another
+await waterfall([() => seed(), (v) => next(v)]); // feed each result to the next
 await mapLimit(ids, 5, (id) => api.get(`/items/${id}`));
-await withTimeout(slowPromise, 1000, "too slow");  // reject if it takes too long
+await withTimeout(slowPromise, 1000, "too slow");
 ```
 
-Also: `mapAsync(items, fn)` and `allSettledMap(items, fn)` (never rejects;
-returns `{ status, value|reason }[]`).
-
----
+There's also `mapAsync(items, fn)` and `allSettledMap(items, fn)`, which never
+rejects and gives you `{ status, value | reason }[]`.
 
 ## Utility belt
 
-A general-purpose, zero-dependency toolkit (~170 functions). Import flat from
+A general toolkit, about 170 functions, no dependencies. Import them flat from
 `two-go/utils`, or use the `_` namespace and `chain()` from the main entry.
 
 ```js
@@ -495,23 +461,19 @@ chain([1, 2, 2, 3, 4])
   .value(); // [20, 40]
 ```
 
-Groups:
+The groups: array (`chunk`, `uniq`, `difference`, `flatten`, `zip`, and so on),
+collection (`map`, `filter`, `groupBy`, `keyBy`, `orderBy`, `partition`,
+`sample`), object (`get`, `set`, `pick`, `omit`, `merge`, `mapValues`), string
+(`camelCase`, `kebabCase`, `truncate`, `template`, `deburr`), number (`clamp`,
+`sum`, `mean`, `range`), function (`debounce`, `throttle`, `memoize`, `sleep`,
+`retry`), lang (`isString`, `isPlainObject`, `isEqual`, `cloneDeep`, and the
+rest of the type guards), and a few odds and ends (`identity`, `times`,
+`uniqueId`, `flow`).
 
-- **array** — `chunk`, `compact`, `difference(By)`, `drop`, `take`, `flatten(Deep)`, `uniq(By)`, `union(By)`, `intersection(By)`, `zip`, `without`, `head`, `last`, `nth`, ...
-- **collection** — `map`, `filter`, `reduce`, `find`, `some`, `every`, `groupBy`, `keyBy`, `countBy`, `orderBy`, `sortBy`, `partition`, `sample`, `shuffle`, `size`, ...
-- **object** — `get`, `set`, `has`, `unset`, `pick(By)`, `omit(By)`, `merge`, `mergeDeep`, `defaults`, `mapValues`, `mapKeys`, `invert`, `keys`, `values`, `entries`, ...
-- **string** — `camelCase`, `kebabCase`, `snakeCase`, `startCase`, `capitalize`, `truncate`, `pad(Start|End)`, `words`, `escape`, `deburr`, `template`, ...
-- **number** — `clamp`, `inRange`, `random`, `round`, `sum(By)`, `mean(By)`, `min(By)`, `max(By)`, `range`, ...
-- **function** — `debounce`, `throttle`, `once`, `memoize`, `curry`, `partial`, `sleep`, `retry`, `negate`, ...
-- **lang** — `isString`, `isNumber`, `isArray`, `isPlainObject`, `isEmpty`, `isEqual`, `cloneDeep`, ... (type guards as TS type predicates)
-- **misc** — `identity`, `noop`, `times`, `uniqueId`, `flow`, `matches`, `iteratee`, ...
+## Schema validation and inference
 
----
-
-## Schema validation & inference
-
-A tiny JSON-schema validator, plus inference from an example value for
-lightweight contract testing.
+A small JSON schema validator, plus a way to build a schema from a real
+response for light contract testing.
 
 ```js
 import { validate } from "two-go/schema";
@@ -521,40 +483,35 @@ validate(
   { id: 1, name: "Ada" },
   { type: "object", required: ["id"], properties: { id: { type: "integer" } } },
 );
-// => { valid: true, errors: [] }
+// { valid: true, errors: [] }
 
-// Infer a schema from a real response, then reuse it as a contract.
 const res = await api.get("/users");
-const schema = res.toSchema();                 // or inferSchema(res.body)
+const schema = res.toSchema();        // or inferSchema(res.body)
 await api.get("/users").expectJsonSchema(schema);
 ```
 
-Supported keywords: `type`, `required`, `properties`, `items`, `enum`, `const`,
-`minLength`, `maxLength`, `minimum`, `maximum`, `pattern`, `nullable`.
+It understands `type`, `required`, `properties`, `items`, `enum`, `const`,
+`minLength`, `maxLength`, `minimum`, `maximum`, `pattern`, and `nullable`.
 
----
-
-## Debugging: curl export & logging
+## Debugging with curl and logging
 
 ```js
 import { enableLogging } from "two-go";
 
-// Print a copy-pasteable curl command (also importable into Postman).
+// Print a curl command you can paste anywhere, including Postman.
 console.log(api.get("/users").bearer("x").toCurl());
 
-// Log every request/response (method, url, status, time).
+// Log every request and response (method, url, status, time).
 const off = enableLogging(api);
 await api.get("/users");
-off(); // restore
+off(); // back to quiet
 ```
 
----
+## Running tests
 
-## Running your tests
+Because the checks throw, there's nothing to configure. Pick whatever you use.
 
-Because assertions throw, two-go works in any runner with no adapter.
-
-### node:test
+With `node:test`:
 
 ```js
 import { test } from "node:test";
@@ -571,23 +528,11 @@ test("GET /users", async () => {
 node --test
 ```
 
-### Jest / Vitest / Mocha
+With Jest, Vitest, or Mocha it's the same idea, just their `describe`/`it`.
 
-```js
-import { describe, it } from "vitest"; // or @jest/globals, or mocha
-import { go } from "two-go";
-
-describe("users API", () => {
-  it("lists users", async () => {
-    await go("https://api.example.com").get("/users").expectStatus(200);
-  });
-});
-```
-
-### Built-in CLI
-
-Write suites in `*.twogo.mjs` files (the legacy `*.2go.mjs` suffix also works).
-Each file registers a suite with `suite()`; the CLI discovers and runs them.
+There's also a built-in runner and CLI if you don't want to bring your own. Put
+suites in `*.twogo.mjs` files (the old `*.2go.mjs` suffix still works). Each
+file calls `suite()`, and the CLI finds and runs them.
 
 ```js
 // test/users.twogo.mjs
@@ -605,17 +550,16 @@ suite("users API", ({ test, before, after }) => {
 ```
 
 ```bash
-npx two-go            # discovers *.twogo.mjs under ./test
+npx two-go            # finds *.twogo.mjs under ./test
 npx two-go path/to/dir
 ```
 
-The CLI prints green `✓` / red `✗` with the error, ends with
-`N passed, M failed`, and exits non-zero when anything fails.
-
-### Programmatic runner
+It prints a green check or a red cross with the error, ends with
+`N passed, M failed`, and exits non-zero if anything failed. You can also drive
+it yourself:
 
 ```js
-import { suite, run, reset } from "two-go";
+import { suite, run } from "two-go";
 
 suite("smoke", ({ test }) => {
   test("health", async () => {
@@ -626,64 +570,59 @@ suite("smoke", ({ test }) => {
 const { passed, failed } = await run();
 ```
 
----
+## Importing from OpenAPI or Postman
 
-## Generate tests from OpenAPI / Postman
-
-Scaffold runnable `*.twogo.mjs` suites from an existing API definition (JSON
-input for now):
+If you already have an OpenAPI document or a Postman collection, you can turn it
+into a starting test suite instead of writing one by hand. JSON input for now.
 
 ```bash
 two-go gen openapi ./openapi.json -o test/api.twogo.mjs
 two-go gen postman ./collection.json -o test/api.twogo.mjs
-# omit -o to print to stdout
+# drop -o to print to stdout
 ```
 
-Programmatic use:
+Or from code:
 
 ```js
 import { fromOpenapi, fromPostman } from "two-go/importers";
 
-const code = fromOpenapi(JSON.parse(specJson));   // returns the suite source
+const code = fromOpenapi(JSON.parse(specJson)); // returns the suite source
 ```
 
-- **OpenAPI 3**: one test per operation, asserting the documented 2xx status;
-  path params get a sample value; `servers[0].url` becomes the base URL.
-- **Postman v2.1**: one test per request (folders flattened), mapping method,
-  path, headers, and JSON/urlencoded bodies. Generated assertions start at
-  `.expectOk()` / `.expectStatus(...)` for you to tighten.
+For OpenAPI it writes one test per operation and asserts the documented 2xx
+status, fills path params with a sample value, and takes the base URL from
+`servers[0]`. For Postman it writes one test per request (folders get
+flattened) and maps the method, path, headers, and JSON or urlencoded body. The
+generated checks start at `.expectOk()` or `.expectStatus(...)` so you can
+tighten them.
 
 ## TypeScript
 
-two-go ships hand-written `.d.ts` declarations for the entire public API, so you
-get full autocomplete and type checking with **no `@types` package and no
-runtime dependency** — from both `two-go` and every subpath.
+Types are written by hand and shipped with the package, so you get
+autocomplete and checking with no `@types` install and nothing at runtime. It
+works from `two-go` and every subpath.
 
 ```ts
 import go, { expect, faker } from "two-go";
 import { chunk } from "two-go/utils";
 
 const res = await go("https://api.example.com").get("/users").expectOk();
-res.expectValue("data[0].id").toBeGreaterThan(0); // typed end to end
+res.expectValue("data[0].id").toBeGreaterThan(0);
 const ids: number[][] = chunk([1, 2, 3, 4], 2);
 ```
 
----
-
 ## Docker
 
-Run the suite in a reproducible container:
+Run the test suite in a container if you want it reproducible:
 
 ```bash
 docker build -t two-go .
 docker run --rm two-go
 ```
 
----
-
 ## Recipes
 
-### Authenticated flow (login → use token)
+Log in, then use the token:
 
 ```js
 import { session } from "two-go";
@@ -693,7 +632,7 @@ await s.post("/auth/login").json({ email, password }).extract("token", "data.tok
 await s.get("/account").header("authorization", "Bearer {{token}}").expectOk();
 ```
 
-### Retry a flaky / async endpoint
+Wait for a flaky or async endpoint:
 
 ```js
 import { eventually } from "two-go";
@@ -702,7 +641,7 @@ await eventually(() => api.get("/report/42").expectJson("ready", true),
   { timeout: 10000, interval: 500 });
 ```
 
-### Data-driven (table) tests with node:test
+Table driven tests with `node:test`:
 
 ```js
 import { test } from "node:test";
@@ -721,7 +660,7 @@ for (const c of cases) {
 }
 ```
 
-### Paginate and collect
+Page through and collect:
 
 ```js
 import { mapLimit } from "two-go";
@@ -731,7 +670,7 @@ const pages = await mapLimit([1, 2, 3, 4, 5], 2, (p) =>
 const all = pages.flatMap((r) => r.get("data"));
 ```
 
-### Contract test from a known-good response
+Lock a response shape as a contract:
 
 ```js
 import { inferSchema } from "two-go";
@@ -742,119 +681,64 @@ const schema = inferSchema(golden);
 await api.get("/users").expectJsonSchema(schema);
 ```
 
-### CI (GitHub Actions)
+## two-go next to other tools
 
-```yaml
-- uses: actions/setup-node@v4
-  with: { node-version: 20 }
-- run: npm test
-```
-
----
-
-## How it compares
-
-| | two-go | Postman | supertest | chai/jest only |
+| | two-go | Postman | supertest | chai or jest alone |
 | --- | --- | --- | --- | --- |
-| HTTP client built in | yes (native fetch) | yes (GUI) | yes (around an app) | no |
-| Tests live as code in git | yes | collections (JSON) | yes | yes |
+| HTTP client included | yes (native fetch) | yes (GUI) | yes (around an app) | no |
+| Tests are code in git | yes | collections as JSON | yes | yes |
 | Runs in node:test/Jest/Vitest/Mocha | yes | no (sandbox) | yes | yes |
-| Inline HTTP assertions | yes | `pm.*` | partial | no |
-| Value assertions (`expect`) | yes | Chai | no | yes |
-| Polling / soft / snapshot / session | yes | partial | no | no |
-| Utility belt + fake data | yes | limited | no | no |
+| Inline HTTP checks | yes | `pm.*` | partial | no |
+| Value assertions | yes | Chai | no | yes |
+| Polling, soft, snapshot, sessions | yes | partial | no | no |
+| Utility belt and fake data | yes | limited | no | no |
 | Runtime dependencies | 0 | n/a | several | several |
 
-> two-go does not run *inside* Postman (Postman's sandbox forbids arbitrary npm
-> packages). Use `toCurl()` to move a request from two-go into Postman.
-
----
-
-## API reference summary
-
-```text
-go(baseURL | { baseURL, headers, timeout }) -> GoClient
-GoClient: get put post patch delete head options (path) -> RequestBuilder; send(req)
-RequestBuilder (thenable): header headers query bearer json form text timeout
-                           + queued assertions + run()
-GoResponse: status statusText headers body text time url method; get(path)
-            + all HTTP assertions; expectValue(path) -> Expectation; toSchema(path?)
-expect(value) -> Expectation (matchers + .not + .resolves/.rejects)
-soft() -> { expect, verify, failures };  softly(fn)
-eventually(fn, opts);  pollUntil(fn, predicate, opts);  retryUntil
-toMatchSnapshot(value, name, opts);  matchSnapshot;  readSnapshot
-session(baseURL) -> verbs -> SessionRequest(.extract, thenable); set/get/vars
-faker.{ uuid email fullName int float boolean pick date arrayOf ... }
-async: parallel parallelLimit series waterfall mapAsync mapLimit withTimeout allSettledMap
-utils (two-go/utils, _ , chain): array/collection/object/string/number/function/lang/misc
-validate(value, schema);  isValid(value, schema);  inferSchema(value)
-toCurl(req);  req.toCurl();  enableLogging(client, opts)
-suite(name, fn);  run();  reset()   // built-in runner
-```
-
----
+A note on Postman: you can't run two-go inside Postman, because its script
+sandbox doesn't allow arbitrary npm packages. The bridge goes the other way.
+Use `toCurl()` to take a request out of two-go and paste it into Postman.
 
 ## FAQ
 
-**Is this a unit-testing framework?** No — it is an API/service testing library
-that runs inside your existing unit-test runner. (Its own internal functions are
-covered by real unit tests.)
+Is this a unit testing framework? No. It's for API and service testing, and it
+runs inside the unit test runner you already use. (Its own internals are covered
+by real unit tests.)
 
-**Can I use it inside Postman scripts?** No. Postman's sandbox only allows a
-fixed set of built-in libraries and no ESM imports. Use `toCurl()` to move a
-request *to* Postman instead.
+Can I use it inside Postman scripts? No, see the note above. Use `toCurl()` to
+go the other direction.
 
-**Does it need TypeScript?** No. It is plain ESM JavaScript; types are shipped
-for editors/TS users but never required.
+Do I need TypeScript? No. It's plain ESM JavaScript. The types are there for
+editors and TS users but they're never required.
 
-**CommonJS support?** two-go is ESM-only. Use it from ESM (`import`) or a dynamic
-`import()` in CommonJS.
+What about CommonJS? two-go is ESM only. Use `import`, or a dynamic `import()`
+from a CommonJS file.
 
-**Why zero dependencies?** Faster installs, no supply-chain surface, and it runs
-anywhere Node 18+ runs.
-
----
+Why zero dependencies? Faster installs, nothing to audit, and it runs anywhere
+Node 18 runs.
 
 ## Roadmap
 
-Planned, in rough priority order (suggestions welcome via issues):
+Rough order, suggestions welcome in issues:
 
-1. **Reporters** — JUnit XML and JSON output from the built-in runner for CI.
-3. **GraphQL helper** — `.graphql(query, variables)` on the builder.
-4. **Cookie jar / persistent sessions** — automatic cookie carry-over.
-5. **Retry/backoff at the request level** — `.retry({ attempts, backoff })`.
-6. **Mock server helper** — a one-liner local server for fixtures.
-7. **Performance assertions** — percentile/latency checks over repeated calls.
+1. Reporters: JUnit XML and JSON output from the built-in runner for CI.
+2. A GraphQL helper, `.graphql(query, variables)`.
+3. A cookie jar so sessions carry cookies automatically.
+4. Request level retry and backoff, `.retry({ attempts, backoff })`.
+5. A one liner mock server for fixtures.
+6. Performance checks over repeated calls.
 
----
+## Contributing
 
-## Development
-
-```bash
-npm test          # unit tests (node:test) + end-to-end self test
-npm run test:unit # unit tests only
-npm run test:e2e  # self test only
-npm run typecheck # type-check the .d.ts against a usage smoke test (tsc)
-```
-
-Contributions are welcome. Please keep the **zero-dependency** rule, add tests
-for new behavior, and run `npm test` and `npm run typecheck` before opening a PR.
-
----
-
-## Publishing
+Pull requests are welcome. Keep the zero dependency rule, add tests for new
+behavior, and run `npm test` and `npm run typecheck` before you open a PR.
 
 ```bash
-npm version patch          # bump version
-npm pack --dry-run         # preview the published file list
-npm publish --access public
+npm test          # unit tests plus the end to end self test
+npm run test:unit # just the unit tests
+npm run test:e2e  # just the self test
+npm run typecheck # type check the declarations against a usage sample
 ```
-
-`prepublishOnly` runs the full test suite before any publish. Only `src`, `bin`,
-`README.md`, and `CHANGELOG.md` are published.
-
----
 
 ## License
 
-[MIT](./LICENSE) (c) 2026 Tugkan Boz
+[MIT](./LICENSE), Tugkan Boz, 2026.
