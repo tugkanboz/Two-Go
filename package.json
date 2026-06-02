@@ -17,7 +17,8 @@
     "./faker": { "types": "./src/faker.d.ts", "default": "./src/faker.js" },
     "./async": { "types": "./src/async.d.ts", "default": "./src/async.js" },
     "./curl": { "types": "./src/curl.d.ts", "default": "./src/curl.js" },
-    "./infer-schema": { "types": "./src/infer-schema.d.ts", "default": "./src/infer-schema.js" }
+    "./infer-schema": { "types": "./src/infer-schema.d.ts", "default": "./src/infer-schema.js" },
+    "./importers": { "types": "./src/importers/index.d.ts", "default": "./src/importers/index.js" }
   },
   "bin": {
     "two-go": "bin/twogo.js"

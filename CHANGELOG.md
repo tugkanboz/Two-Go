@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Importers**: `fromOpenapi` and `fromPostman` generate runnable
+  `*.twogo.mjs` suites from an OpenAPI 3 document or a Postman v2.1 collection
+  (JSON). New CLI command `two-go gen <openapi|postman> <file> [-o <out>]` and
+  the `two-go/importers` subpath.
+
 ## [0.4.0]
 
 ### Added

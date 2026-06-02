@@ -9,10 +9,54 @@
 // the given directory (defaults to "test"), imports each one, then runs them.
 
 import { readdir } from "node:fs/promises";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, statSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { run } from "../src/runner.js";
+import { fromPostman } from "../src/importers/postman.js";
+import { fromOpenapi } from "../src/importers/openapi.js";
+
+// `two-go gen <postman|openapi> <file> [-o <out>]` generates a test suite from
+// an API definition and writes it to <out> (or prints it to stdout).
+if (process.argv[2] === "gen") {
+  const type = process.argv[3];
+  const input = process.argv[4];
+  const oIndex = process.argv.indexOf("-o");
+  const out = oIndex !== -1 ? process.argv[oIndex + 1] : null;
+
+  if (!type || !input) {
+    console.error("two-go: usage: two-go gen <postman|openapi> <file> [-o <out>]");
+    process.exit(1);
+  }
+  if (!existsSync(input)) {
+    console.error(`two-go: input "${input}" does not exist`);
+    process.exit(1);
+  }
+
+  let spec;
+  try {
+    spec = JSON.parse(readFileSync(input, "utf8"));
+  } catch (err) {
+    console.error(`two-go: could not parse "${input}" as JSON: ${err.message}`);
+    process.exit(1);
+  }
+
+  let code;
+  if (type === "postman") code = fromPostman(spec);
+  else if (type === "openapi") code = fromOpenapi(spec);
+  else {
+    console.error(`two-go: unknown gen type "${type}" (expected "postman" or "openapi")`);
+    process.exit(1);
+  }
+
+  if (out) {
+    writeFileSync(out, code, "utf8");
+    console.log(`two-go: wrote ${out}`);
+  } else {
+    process.stdout.write(code);
+  }
+  process.exit(0);
+}
 
 const target = process.argv[2] || "test";
 const root = resolve(process.cwd(), target);
