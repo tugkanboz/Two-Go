@@ -630,6 +630,20 @@ like any other test. Treat it as a first draft and tighten the checks. The
 default models are `gpt-5.3` for OpenAI and `claude-opus-4-8` for Anthropic, and
 you can override either with `{ model }`.
 
+When a test fails you can also ask the model what probably went wrong. This is
+advisory, it runs after the failure and never changes pass or fail.
+
+```js
+import { explainFailure } from "two-go/ai";
+
+try {
+  await api.get("/users").expectStatus(200);
+} catch (err) {
+  const why = await explainFailure(err, { response: err.response, provider: "openai" });
+  console.log(why); // likely cause plus a suggested fix
+}
+```
+
 ## TypeScript
 
 Types are written by hand and shipped with the package, so you get

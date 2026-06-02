@@ -2,3 +2,4 @@
 // no dependency. Bring your own API key.
 export { createProvider } from "./provider.js";
 export { aiGenerateTests } from "./generate.js";
+export { explainFailure } from "./explain.js";

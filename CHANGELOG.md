@@ -15,6 +15,9 @@ All notable changes to this project are documented here. This project follows
   fetch (`createProvider`, bring your own key, OpenAI/Anthropic/custom baseURL)
   and `aiGenerateTests` to draft a suite from an endpoint or sample response.
   New CLI command `two-go ai gen <url|file> [-o out]`.
+- **AI failure explanation** (`explainFailure`): send a failed assertion plus
+  the request and response context to an LLM and get a likely cause and a
+  suggested fix. Advisory only, it never changes pass or fail.
 
 ## [0.4.0]
 
