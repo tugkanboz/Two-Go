@@ -36,6 +36,7 @@ import { fromPostman } from "./importers/postman.js";
 import { fromOpenapi } from "./importers/openapi.js";
 import { createProvider } from "./ai/provider.js";
 import { aiGenerateTests } from "./ai/generate.js";
+import { explainFailure } from "./ai/explain.js";
 
 // Namespace of all lodash-inspired utilities, available as both `_` and `utils`.
 import * as _ from "./utils/index.js";
@@ -91,6 +92,7 @@ export {
   fromOpenapi,
   createProvider,
   aiGenerateTests,
+  explainFailure,
 };
 
 // Also expose the utility belt under the `utils` name.

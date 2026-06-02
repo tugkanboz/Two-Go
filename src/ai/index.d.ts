@@ -7,3 +7,4 @@ export {
   type ChatMessage,
 } from "./provider.js";
 export { aiGenerateTests, type GenerateOptions } from "./generate.js";
+export { explainFailure, type ExplainOptions } from "./explain.js";
