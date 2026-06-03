@@ -85,6 +85,7 @@ you're used to.
 - [Schema validation and inference](#schema-validation-and-inference)
 - [Debugging with curl and logging](#debugging-with-curl-and-logging)
 - [Running tests](#running-tests)
+- [BDD style](#bdd-style)
 - [Importing from OpenAPI or Postman](#importing-from-openapi-or-postman)
 - [Generating tests with AI](#generating-tests-with-ai)
 - [TypeScript](#typescript)
@@ -188,6 +189,8 @@ subpath ships its own types.
 | `two-go/infer-schema` | schema inference |
 | `two-go/importers` | OpenAPI and Postman importers |
 | `two-go/ai` | optional AI layer (provider plus test generation) |
+| `two-go/mcp` | the MCP server |
+| `two-go/bdd` | runner-agnostic given/when/then helpers |
 
 ## Building a request
 
@@ -579,6 +582,34 @@ suite("smoke", ({ test }) => {
 
 const { passed, failed } = await run();
 ```
+
+## BDD style
+
+If you like given/when/then, `two-go/bdd` gives you a small, runner-agnostic
+layer. `scenario(steps)` returns an async function you pass to your runner's
+`test()`. Steps share a `world` object, and two-go's assertions decide pass or
+fail. It does not import any runner, so it works with node:test, Jest, Vitest,
+and Mocha.
+
+```js
+import { test } from "node:test";
+import { go } from "two-go";
+import { scenario, given, when, then, and } from "two-go/bdd";
+
+const api = go("https://api.example.com");
+
+test("creating a user", scenario([
+  given("a valid payload", (w) => { w.payload = { name: "Ada", email: "ada@example.com" }; }),
+  when("the user is created", async (w) => { w.res = await api.post("/users").json(w.payload); }),
+  then("the response is 201", (w) => w.res.expectStatus(201)),
+  and("the body echoes the name", (w) => w.res.expectJson("name", "Ada")),
+]));
+```
+
+A `when` stashes the response on `world`, a `then` asserts on it. For a runnable
+end to end suite (a shop with login, cart, checkout, and more) see the
+`ecommerce-bdd` example in
+[two-go-examples](https://github.com/tugkanboz/two-go-examples).
 
 ## Importing from OpenAPI or Postman
 

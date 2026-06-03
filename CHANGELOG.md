@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **BDD layer** (`two-go/bdd`): runner-agnostic `given` / `when` / `then` /
+  `and` plus `scenario(steps)` and `feature(...)`. `scenario` returns an async
+  function for your runner's `test()`, with steps sharing a `world`. Does not
+  import any runner, so it works with node:test, Jest, Vitest, and Mocha.
+
 ## [1.0.0] - 2026-06-02
 
 First stable release. The HTTP client, assertions, utilities, and the AI and MCP
