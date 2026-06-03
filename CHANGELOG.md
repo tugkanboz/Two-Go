@@ -3,7 +3,23 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0]
+
+### Added
+
+- **GraphQL helper**: `client.graphql(query, variables, { path })` POSTs
+  `{ query, variables }` and returns the usual chainable builder.
+- **Request retry/backoff**: `.retry({ attempts, delay, factor, on })` on the
+  builder retries on a thrown error or when `on(response)` is truthy.
+- **Cookie jar**: `go({ cookies: true })` (or pass a `Map`) captures Set-Cookie
+  and replays Cookie on later requests from that client.
+- **Reporters** (`two-go/reporters`): `toJUnit(result)` and `toJSON(result)`
+  turn a `run()` result into CI-friendly output. The CLI gained
+  `--reporter junit|json [--out <file>]`, and `run()` now returns a `tests`
+  array with per-test status, duration, and error.
+- **BDD layer** (`two-go/bdd`): runner-agnostic `given` / `when` / `then` /
+  `and` plus `scenario(steps)` and `feature(...)`. Works with node:test, Jest,
+  Vitest, and Mocha.
 
 ### Changed
 
@@ -12,17 +28,6 @@ All notable changes to this project are documented here. This project follows
   chainable on the request builder too, not only on a resolved response. So
   `api.get("/x").expectStatus(200).expectJsonSchema(schema)` works. `expectValue`
   stays response-only since it returns an `expect()`.
-
-### Added
-
-- **Reporters** (`two-go/reporters`): `toJUnit(result)` and `toJSON(result)`
-  turn a `run()` result into CI-friendly output. The CLI gained
-  `--reporter junit|json [--out <file>]`, and `run()` now returns a `tests`
-  array with per-test status, duration, and error.
-- **BDD layer** (`two-go/bdd`): runner-agnostic `given` / `when` / `then` /
-  `and` plus `scenario(steps)` and `feature(...)`. `scenario` returns an async
-  function for your runner's `test()`, with steps sharing a `world`. Does not
-  import any runner, so it works with node:test, Jest, Vitest, and Mocha.
 
 ## [1.0.0] - 2026-06-02
 

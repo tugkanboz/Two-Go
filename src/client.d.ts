@@ -5,6 +5,15 @@ export interface GoClientOptions {
   baseURL?: string;
   headers?: Record<string, string>;
   timeout?: number;
+  /** Enable a cookie jar (true) or supply your own Map of name to value. */
+  cookies?: boolean | Map<string, string>;
+}
+
+export interface RetryOptions {
+  attempts?: number;
+  delay?: number;
+  factor?: number;
+  on?: (response: GoResponse) => boolean;
 }
 
 export type HttpMethod =
@@ -32,6 +41,13 @@ export declare class GoClient {
   options(path: string): RequestBuilder;
 
   send(req: RequestBuilder): Promise<GoResponse>;
+
+  /** POST a GraphQL query (added by graphql.js). */
+  graphql(
+    query: string,
+    variables?: Record<string, unknown>,
+    options?: { path?: string }
+  ): RequestBuilder;
 }
 
 export declare class RequestBuilder implements PromiseLike<GoResponse> {
@@ -50,6 +66,7 @@ export declare class RequestBuilder implements PromiseLike<GoResponse> {
   form(obj: Record<string, string> | URLSearchParams): this;
   text(str: string): this;
   timeout(ms: number): this;
+  retry(options?: RetryOptions): this;
 
   // --- queued assertions (chainable) ---
   expectStatus(status: number): this;

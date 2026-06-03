@@ -5,10 +5,14 @@
 import { GoResponse } from "./response.js";
 
 export class GoClient {
-  constructor({ baseURL = "", headers = {}, timeout = 30000 } = {}) {
+  constructor({ baseURL = "", headers = {}, timeout = 30000, cookies = false } = {}) {
     // Strip a single trailing slash from the base URL.
     this.baseURL = String(baseURL).replace(/\/+$/, "");
     this.timeout = timeout;
+
+    // Optional cookie jar: captures Set-Cookie and replays Cookie on later
+    // requests from this client. Pass cookies: true, or your own Map.
+    this._jar = cookies instanceof Map ? cookies : cookies ? new Map() : null;
 
     // Lowercase default header keys for consistent merging.
     this.headers = {};
@@ -31,6 +35,11 @@ export class GoClient {
 
     // Merge default headers with per-request headers (all lowercase keys).
     const headers = { ...this.headers, ...req._headers };
+
+    // Attach stored cookies unless the request already set its own.
+    if (this._jar && this._jar.size > 0 && headers.cookie === undefined) {
+      headers.cookie = [...this._jar].map(([k, v]) => `${k}=${v}`).join("; ");
+    }
 
     const controller = new AbortController();
     const timeout = req._timeout ?? this.timeout;
@@ -60,6 +69,22 @@ export class GoClient {
     const resHeaders = {};
     for (const [key, value] of res.headers.entries()) {
       resHeaders[key.toLowerCase()] = value;
+    }
+
+    // Capture Set-Cookie into the jar (use getSetCookie so multiple cookies
+    // are not lost to header joining).
+    if (this._jar) {
+      const setCookies =
+        typeof res.headers.getSetCookie === "function"
+          ? res.headers.getSetCookie()
+          : resHeaders["set-cookie"]
+            ? [resHeaders["set-cookie"]]
+            : [];
+      for (const cookie of setCookies) {
+        const pair = String(cookie).split(";")[0];
+        const eq = pair.indexOf("=");
+        if (eq > 0) this._jar.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
+      }
     }
 
     const text = await res.text();
@@ -116,6 +141,39 @@ function ensureLeadingSlash(path) {
   return path.startsWith("/") ? path : "/" + path;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Send a builder with retry/backoff. Retries on a thrown error, or when the
+// retry's on(response) predicate returns truthy, until attempts run out.
+async function sendWithRetry(builder) {
+  const r = builder._retry || {};
+  const attempts = r.attempts != null ? r.attempts : 3;
+  const factor = r.factor != null ? r.factor : 2;
+  let delay = r.delay != null ? r.delay : 0;
+  let lastError;
+
+  for (let i = 0; i < attempts; i += 1) {
+    const isLast = i === attempts - 1;
+    try {
+      const res = await builder.client.send(builder);
+      if (!isLast && typeof r.on === "function" && r.on(res)) {
+        await sleep(delay);
+        delay *= factor;
+        continue;
+      }
+      return res;
+    } catch (err) {
+      lastError = err;
+      if (isLast) throw err;
+      await sleep(delay);
+      delay *= factor;
+    }
+  }
+  throw lastError;
+}
+
 // The set of assertion method names that can be queued on a RequestBuilder.
 // Each one maps to a same-named method on GoResponse.
 const QUEUEABLE = [
@@ -139,6 +197,7 @@ export class RequestBuilder {
     this._query = {};
     this._body = undefined;
     this._timeout = undefined;
+    this._retry = undefined;
 
     // Queued assertions, replayed in order against the GoResponse.
     this._assertions = [];
@@ -193,11 +252,18 @@ export class RequestBuilder {
     return this;
   }
 
+  // Retry the send on a thrown error (network/timeout) or when on(response) is
+  // truthy. options: { attempts = 3, delay = 0, factor = 2, on }.
+  retry(options = {}) {
+    this._retry = options;
+    return this;
+  }
+
   // --- run + thenable ---
 
   // Send the request, then replay every queued assertion in order.
   async run() {
-    const response = await this.client.send(this);
+    const response = this._retry ? await sendWithRetry(this) : await this.client.send(this);
     for (const { name, args } of this._assertions) {
       response[name](...args);
     }

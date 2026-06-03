@@ -12,6 +12,8 @@ import { chain } from "./utils/chain.js";
 // Side-effect import: augments GoResponse.prototype with the extra HTTP
 // assertions (expectClientError, expectJsonSchema, expectValue, ...).
 import "./http-assertions.js";
+// Side-effect import: adds GoClient.prototype.graphql.
+import "./graphql.js";
 
 // Differentiating features (API-testing specific, beyond a utility belt).
 import { soft, softly } from "./soft.js";
