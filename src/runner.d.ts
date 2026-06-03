@@ -13,9 +13,18 @@ export interface SuiteEntry {
   afterHooks: Array<() => unknown>;
 }
 
+export interface TestResult {
+  suite: string;
+  name: string;
+  status: "passed" | "failed";
+  durationMs: number;
+  error: string | null;
+}
+
 export interface RunResult {
   passed: number;
   failed: number;
+  tests: TestResult[];
 }
 
 export declare function suite(name: string, fn: (api: SuiteApi) => void): SuiteEntry;

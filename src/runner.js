@@ -36,10 +36,12 @@ const green = (s) => (useColor ? `\x1b[32m${s}\x1b[0m` : s);
 const red = (s) => (useColor ? `\x1b[31m${s}\x1b[0m` : s);
 const dim = (s) => (useColor ? `\x1b[2m${s}\x1b[0m` : s);
 
-// Run all registered suites. Returns { passed, failed }.
+// Run all registered suites. Returns { passed, failed, tests } where tests is
+// a flat list of { suite, name, status, durationMs, error } for reporters.
 export async function run() {
   let passed = 0;
   let failed = 0;
+  const tests = [];
 
   for (const s of registry) {
     console.log(`\n${s.name}`);
@@ -55,12 +57,14 @@ export async function run() {
         const ms = Math.round(performance.now() - start);
         console.log(`  ${green("✓")} ${t.name} ${dim(`(${ms}ms)`)}`);
         passed++;
+        tests.push({ suite: s.name, name: t.name, status: "passed", durationMs: ms, error: null });
       } catch (err) {
         const ms = Math.round(performance.now() - start);
         console.log(`  ${red("✗")} ${t.name} ${dim(`(${ms}ms)`)}`);
         const message = err && err.message ? err.message : String(err);
         console.log(`    ${red(message)}`);
         failed++;
+        tests.push({ suite: s.name, name: t.name, status: "failed", durationMs: ms, error: message });
       }
     }
 
@@ -75,7 +79,7 @@ export async function run() {
     process.exitCode = 1;
   }
 
-  return { passed, failed };
+  return { passed, failed, tests };
 }
 
 // Clear the registry. Useful for tests that drive the runner themselves.

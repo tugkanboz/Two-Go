@@ -16,6 +16,7 @@ import { run } from "../src/runner.js";
 import { fromPostman } from "../src/importers/postman.js";
 import { fromOpenapi } from "../src/importers/openapi.js";
 import { aiGenerateTests } from "../src/ai/generate.js";
+import { toJUnit, toJSON } from "../src/reporters.js";
 
 // Read the value following a flag in argv, or undefined.
 function flag(name) {
@@ -124,7 +125,8 @@ if (process.argv[2] === "ai" && process.argv[3] === "gen") {
   process.exit(0);
 }
 
-const target = process.argv[2] || "test";
+// The directory is the first non-flag argument; default to "test".
+const target = process.argv[2] && !process.argv[2].startsWith("-") ? process.argv[2] : "test";
 const root = resolve(process.cwd(), target);
 
 if (!existsSync(root)) {
@@ -168,5 +170,19 @@ for (const file of files) {
   await import(pathToFileURL(file).href);
 }
 
-const { failed } = await run();
-process.exit(failed > 0 ? 1 : 0);
+const result = await run();
+
+// Optional machine-readable report: --reporter junit|json [--out file].
+const reporter = flag("--reporter");
+if (reporter === "junit" || reporter === "json") {
+  const report = reporter === "junit" ? toJUnit(result) : toJSON(result);
+  const out = flag("--out");
+  if (out) {
+    writeFileSync(out, report, "utf8");
+    console.log(`two-go: wrote ${out}`);
+  } else {
+    process.stdout.write(report);
+  }
+}
+
+process.exit(result.failed > 0 ? 1 : 0);

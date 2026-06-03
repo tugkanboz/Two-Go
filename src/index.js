@@ -4,6 +4,7 @@ import { GoClient, RequestBuilder } from "./client.js";
 import { GoResponse } from "./response.js";
 import { AssertionError, resolvePath, matches, deepEqual } from "./assertions.js";
 import { suite, run, reset } from "./runner.js";
+import { toJUnit, toJSON } from "./reporters.js";
 import { expect, Expectation } from "./expect.js";
 import { validate, isValid } from "./schema.js";
 import { chain } from "./utils/chain.js";
@@ -61,6 +62,8 @@ export {
   suite,
   run,
   reset,
+  toJUnit,
+  toJSON,
   expect,
   Expectation,
   validate,
