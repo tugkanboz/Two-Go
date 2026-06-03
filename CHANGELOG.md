@@ -15,6 +15,10 @@ All notable changes to this project are documented here. This project follows
 
 ### Added
 
+- **Reporters** (`two-go/reporters`): `toJUnit(result)` and `toJSON(result)`
+  turn a `run()` result into CI-friendly output. The CLI gained
+  `--reporter junit|json [--out <file>]`, and `run()` now returns a `tests`
+  array with per-test status, duration, and error.
 - **BDD layer** (`two-go/bdd`): runner-agnostic `given` / `when` / `then` /
   `and` plus `scenario(steps)` and `feature(...)`. `scenario` returns an async
   function for your runner's `test()`, with steps sharing a `world`. Does not
