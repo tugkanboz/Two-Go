@@ -238,18 +238,29 @@ test("expectValue returns an expect() wrapper for chaining matchers", () => {
   );
 });
 
-test("expectJsonSchema passes when validation yields no errors", () => {
-  // validate(schema, body) is invoked internally; when the effective schema
-  // (the body) is not a plain object, validation short-circuits to valid.
-  const res = makeResponse({ body: "plain-text-body" });
-  assert.ok(res.expectJsonSchema({ type: "string" }));
+test("expectJsonSchema passes when the body matches the schema", () => {
+  const res = makeResponse({ body: { id: 1, name: "Ada" } });
+  assert.ok(
+    res.expectJsonSchema({
+      type: "object",
+      required: ["id"],
+      properties: { id: { type: "integer" }, name: { type: "string" } },
+    })
+  );
 });
 
-test("expectJsonSchema fails and lists errors when validation fails", () => {
-  // Here the body acts as the effective schema and the passed argument as the
-  // value, so a non-matching pair produces validation errors.
-  const res = makeResponse({ body: { type: "number" } });
-  assertFails(() => res.expectJsonSchema("not-a-number"), "GET", "/x");
+test("expectJsonSchema fails and lists errors when the body violates the schema", () => {
+  const res = makeResponse({ body: { id: "not-a-number" } });
+  assertFails(
+    () =>
+      res.expectJsonSchema({
+        type: "object",
+        required: ["id"],
+        properties: { id: { type: "integer" } },
+      }),
+    "GET",
+    "/x"
+  );
 });
 
 test("methods are installed as non-enumerable on the prototype and chain", () => {

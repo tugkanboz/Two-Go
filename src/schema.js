@@ -15,7 +15,8 @@ import {
 // Map of supported "type" keyword values to their predicate.
 const TYPE_CHECKS = {
   string: isString,
-  number: isNumber,
+  // JSON has no NaN/Infinity, so a "number" must be finite (rejects NaN).
+  number: (v) => isNumber(v) && Number.isFinite(v),
   integer: isInteger,
   boolean: isBoolean,
   object: isPlainObject,

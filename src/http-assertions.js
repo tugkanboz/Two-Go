@@ -190,7 +190,7 @@ const methods = {
 
   // Validate the parsed body against a schema, listing every error on failure.
   expectJsonSchema(schema) {
-    const result = validate(schema, this.body);
+    const result = validate(this.body, schema);
 
     // Support either a { valid, errors } result or a bare errors array.
     let valid;
