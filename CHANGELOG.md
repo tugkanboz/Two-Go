@@ -3,6 +3,20 @@
 All notable changes to this project are documented here. This project follows
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.1]
+
+### Fixed
+
+- **expectJsonSchema actually validates now.** It was calling the validator with
+  its arguments swapped, so schema checks silently passed for most bodies. It now
+  validates the response body against the schema.
+- **Deep equality no longer reports false matches for Date / RegExp / Map / Set.**
+  `matches()` (used by `expectJson`, `expectBody`, `expectHeader`, `expectCookie`)
+  now delegates to the correct `isEqual`, so `expectJson(path, new Date(...))` and
+  similar comparisons are meaningful instead of always passing.
+- **The JSON-schema validator rejects `NaN`** for `type: "number"` (and therefore
+  for `minimum`/`maximum`), since JSON has no `NaN`.
+
 ## [1.1.0]
 
 ### Added

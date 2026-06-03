@@ -1,5 +1,7 @@
 // Core assertion primitives shared by GoResponse and RequestBuilder.
-// These have no dependencies and are safe to use standalone.
+// Deep equality is delegated to isEqual from the utility belt so there is a
+// single, correct source of truth (it handles Date, RegExp, Map, Set, NaN).
+import { isEqual } from "./utils/lang.js";
 
 // Error thrown by every failing assertion. Carries the expected/actual values
 // so test runners (and humans) can inspect the mismatch.
@@ -37,7 +39,7 @@ export function resolvePath(obj, path) {
 // Flexible value matcher used by expectJson / expectHeader / expectBody.
 // - RegExp:   test against String(actual)
 // - function: treat as predicate, truthy return means match
-// - object/array: structural deepEqual
+// - object/array: deep equality (Date/RegExp/Map/Set aware via isEqual)
 // - primitive: strict ===
 export function matches(actual, expected) {
   if (expected instanceof RegExp) {
@@ -47,30 +49,11 @@ export function matches(actual, expected) {
     return Boolean(expected(actual));
   }
   if (expected !== null && typeof expected === "object") {
-    return deepEqual(actual, expected);
+    return isEqual(actual, expected);
   }
   return actual === expected;
 }
 
-// Recursive structural equality. Compares own enumerable keys.
-export function deepEqual(a, b) {
-  if (a === b) return true;
-
-  if (a === null || b === null) return false;
-  if (typeof a !== "object" || typeof b !== "object") return false;
-
-  const aIsArray = Array.isArray(a);
-  const bIsArray = Array.isArray(b);
-  if (aIsArray !== bIsArray) return false;
-
-  const aKeys = Object.keys(a);
-  const bKeys = Object.keys(b);
-  if (aKeys.length !== bKeys.length) return false;
-
-  for (const key of aKeys) {
-    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-    if (!deepEqual(a[key], b[key])) return false;
-  }
-
-  return true;
-}
+// Deep structural equality. Kept as a named export for back-compat; it is the
+// same correct implementation used everywhere else.
+export { isEqual as deepEqual };
