@@ -61,6 +61,30 @@ export declare class RequestBuilder implements PromiseLike<GoResponse> {
   expectTimeBelow(ms: number): this;
   check(fn: (response: GoResponse) => unknown): this;
 
+  // --- extended HTTP assertions, also chainable here (added by http-assertions.js) ---
+  expectClientError(): this;
+  expectServerError(): this;
+  expectRedirect(): this;
+  expectCreated(): this;
+  expectAccepted(): this;
+  expectNoContent(): this;
+  expectBadRequest(): this;
+  expectUnauthorized(): this;
+  expectForbidden(): this;
+  expectNotFound(): this;
+  expectContentType(type: string): this;
+  expectHeaderContains(name: string, substr: string): this;
+  expectHeaderAbsent(name: string): this;
+  expectJsonSchema(schema: unknown): this;
+  expectJsonLength(path: string, n: number): this;
+  expectJsonContains(path: string, value: unknown): this;
+  expectArrayLength(path: string, n: number): this;
+  expectSorted(path: string, options?: { key?: string; order?: "asc" | "desc" }): this;
+  expectCookie(name: string, matcher?: unknown): this;
+  expectBodyContains(substr: string): this;
+  expectEmpty(): this;
+  expectNotEmpty(): this;
+
   // --- run + thenable ---
   run(): Promise<GoResponse>;
 

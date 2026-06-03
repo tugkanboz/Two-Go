@@ -5,6 +5,14 @@ All notable changes to this project are documented here. This project follows
 
 ## [Unreleased]
 
+### Changed
+
+- The extended HTTP assertions (`expectClientError`, `expectJsonSchema`,
+  `expectJsonContains`, `expectCookie`, `expectSorted`, and the rest) are now
+  chainable on the request builder too, not only on a resolved response. So
+  `api.get("/x").expectStatus(200).expectJsonSchema(schema)` works. `expectValue`
+  stays response-only since it returns an `expect()`.
+
 ### Added
 
 - **BDD layer** (`two-go/bdd`): runner-agnostic `given` / `when` / `then` /
