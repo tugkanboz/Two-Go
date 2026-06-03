@@ -6,6 +6,7 @@
 // with messages formatted as `${this.method} ${this.url} -> <description>`.
 
 import { GoResponse } from "./response.js";
+import { RequestBuilder } from "./client.js";
 import { AssertionError, resolvePath, matches } from "./assertions.js";
 import { validate } from "./schema.js";
 import { expect } from "./expect.js";
@@ -406,6 +407,25 @@ const methods = {
 for (const [name, fn] of Object.entries(methods)) {
   Object.defineProperty(GoResponse.prototype, name, {
     value: fn,
+    writable: true,
+    enumerable: false,
+    configurable: true,
+  });
+}
+
+// Also make these assertions chainable on the (thenable) RequestBuilder, so you
+// can write api.get("/x").expectStatus(200).expectJsonSchema(schema) instead of
+// awaiting first. They are queued and replayed on the resolved GoResponse, just
+// like the core assertions. expectValue is excluded because it returns an
+// Expectation rather than the response, so it only makes sense post-await.
+for (const name of Object.keys(methods)) {
+  if (name === "expectValue") continue;
+  if (typeof RequestBuilder.prototype[name] === "function") continue;
+  Object.defineProperty(RequestBuilder.prototype, name, {
+    value: function (...args) {
+      this._assertions.push({ name, args });
+      return this;
+    },
     writable: true,
     enumerable: false,
     configurable: true,
