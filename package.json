@@ -20,7 +20,8 @@
     "./infer-schema": { "types": "./src/infer-schema.d.ts", "default": "./src/infer-schema.js" },
     "./importers": { "types": "./src/importers/index.d.ts", "default": "./src/importers/index.js" },
     "./ai": { "types": "./src/ai/index.d.ts", "default": "./src/ai/index.js" },
-    "./mcp": { "types": "./src/mcp/server.d.ts", "default": "./src/mcp/server.js" }
+    "./mcp": { "types": "./src/mcp/server.d.ts", "default": "./src/mcp/server.js" },
+    "./bdd": { "types": "./src/bdd.d.ts", "default": "./src/bdd.js" }
   },
   "bin": {
     "two-go": "bin/twogo.js",
