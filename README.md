@@ -858,6 +858,10 @@ docker run --rm two-go
 
 ## Recipes
 
+For full runnable setups, including a Docker Compose example that tests a
+microservice next to MySQL and MSSQL, see
+[two-go-examples](https://github.com/tugkanboz/two-go-examples).
+
 Log in, then use the token:
 
 ```js
