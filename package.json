@@ -63,10 +63,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tugkanboz/two-go.git"
+    "url": "git+https://github.com/two-go-testing/two-go.git"
   },
   "bugs": {
-    "url": "https://github.com/tugkanboz/two-go/issues"
+    "url": "https://github.com/two-go-testing/two-go/issues"
   },
-  "homepage": "https://github.com/tugkanboz/two-go#readme"
+  "homepage": "https://github.com/two-go-testing/two-go#readme"
 }

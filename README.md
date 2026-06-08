@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/two-go.svg)](https://www.npmjs.com/package/two-go)
 [![npm downloads](https://img.shields.io/npm/dm/two-go.svg)](https://www.npmjs.com/package/two-go)
-[![CI](https://github.com/tugkanboz/two-go/actions/workflows/ci.yml/badge.svg)](https://github.com/tugkanboz/two-go/actions/workflows/ci.yml)
+[![CI](https://github.com/two-go-testing/two-go/actions/workflows/ci.yml/badge.svg)](https://github.com/two-go-testing/two-go/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/two-go.svg)](./LICENSE)
 [![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
 [![types](https://img.shields.io/badge/types-included-blue.svg)](./src/index.d.ts)
@@ -609,7 +609,7 @@ test("creating a user", scenario([
 A `when` stashes the response on `world`, a `then` asserts on it. For a runnable
 end to end suite (a shop with login, cart, checkout, and more) see the
 `ecommerce-bdd` example in
-[two-go-examples](https://github.com/tugkanboz/two-go-examples).
+[two-go-examples](https://github.com/two-go-testing/two-go-examples).
 
 ## Importing from OpenAPI or Postman
 
@@ -891,7 +891,7 @@ docker run --rm two-go
 
 For full runnable setups, including a Docker Compose example that tests a
 microservice next to MySQL and MSSQL, see
-[two-go-examples](https://github.com/tugkanboz/two-go-examples).
+[two-go-examples](https://github.com/two-go-testing/two-go-examples).
 
 Log in, then use the token:
 
